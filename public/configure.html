@@ -193,6 +193,15 @@
             line-height: 1.15;
         }
 
+        .catalog-item .item-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .catalog-item.selected .item-count { color: var(--gold); }
+
         .stamp {
             position: absolute;
             top: -10px;
@@ -360,7 +369,7 @@
 
             <!-- Hero -->
             <div class="text-center mb-10">
-                <img src="https://raw.githubusercontent.com/joaogonp/addon-marvel/main/public/assets/icon.png" alt="Marvel Addon logo" class="w-14 h-14 mx-auto mb-5 border-2" style="border-color: var(--line);">
+                <img src="/assets/icon.png" alt="Marvel Addon logo" class="w-14 h-14 mx-auto mb-5 border-2" style="border-color: var(--line);">
                 <span class="hero-eyebrow mb-4"><i class="fas fa-bolt"></i> Stremio Addon</span>
                 <h1 class="display hero-title mt-4 mb-3">Build your <span class="accent">Marvel</span> run</h1>
                 <p class="text-sm" style="color: var(--muted);">Pick which catalogs show up in Stremio, add an RatingPosterDB key if you've got one, and ship your install link.</p>
@@ -417,6 +426,7 @@
                             </template>
 
                             <span class="item-name">{{ catalog.name }}</span>
+                            <span v-if="catalog.count !== undefined" class="item-count">{{ catalog.count }} titles</span>
                         </div>
                     </div>
 
@@ -455,13 +465,16 @@
 
             <!-- Footer -->
             <div class="text-center mt-10 pt-6 text-sm" style="border-top: 2px solid #26262f; color: var(--muted-2);">
-                <p class="mb-4">Marvel Addon for Stremio &copy; {{ currentYear }}</p>
+                <p class="mb-1">Marvel Addon for Stremio &copy; {{ currentYear }}</p>
+                <p v-if="lastUpdated" class="mb-4 mono text-xs">
+                    Data updated {{ formatDate(lastUpdated) }}<span v-if="version"> &middot; v{{ version }}</span>
+                </p>
                 <div class="flex justify-center items-center gap-6">
-                    <a href="https://github.com/joaogonp/addon-marvel" target="_blank" class="hover:text-white transition" aria-label="GitHub Repository">
+                    <a href="https://github.com/skypetroller/addon-marvel" target="_blank" class="hover:text-white transition" aria-label="GitHub Repository">
                         <i class="fab fa-github text-xl"></i>
                     </a>
-                    <a href="https://www.buymeacoffee.com/joaogonp" target="_blank" class="hover:text-white transition" aria-label="Buy Me a Coffee">
-                        <i class="fas fa-mug-hot text-xl"></i>
+                    <a href="https://github.com/joaogonp/addon-marvel" target="_blank" class="hover:text-white transition text-xs" aria-label="Original project">
+                        Original project
                     </a>
                 </div>
             </div>
@@ -508,6 +521,8 @@
             'movies':         { icon: 'film' },
             'series':         { icon: 'tv' },
             'animations':     { icon: 'palette' },
+            'marvel-new':     { icon: 'star' },
+            'marvel-upcoming': { icon: 'clock' },
         };
 
         new Vue({
@@ -525,13 +540,35 @@
                 shakeButton: false,
                 showEmptyWarning: false,
                 currentYear: new Date().getFullYear(),
+                lastUpdated: null,
+                version: '',
             },
             mounted() {
                 this.fetchCatalogs();
+                this.fetchHealth();
             },
             methods: {
                 iconFor(id) {
                     return (CATALOG_META[id] && CATALOG_META[id].icon) || 'shield-alt';
+                },
+                fetchHealth() {
+                    fetch('/health')
+                        .then(response => response.ok ? response.json() : null)
+                        .then(data => {
+                            if (!data) return;
+                            this.lastUpdated = data.updatedAt || null;
+                            this.version = data.version || '';
+                        })
+                        .catch(() => {});
+                },
+                formatDate(value) {
+                    try {
+                        return new Date(value).toLocaleDateString(undefined, {
+                            year: 'numeric', month: 'short', day: 'numeric'
+                        });
+                    } catch (err) {
+                        return value;
+                    }
                 },
                 fetchCatalogs() {
                     this.loading = true;

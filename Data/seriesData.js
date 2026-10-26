@@ -8,6 +8,14 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/cSHETWKC1JPQ3cNmpMCx9vMPoBs.jpg"
   },
   {
+    "title": "Night Man",
+    "type": "series",
+    "imdbId": "tt0128886",
+    "id": "marvel_tt0128886",
+    "releaseYear": "1977",
+    "poster": "https://image.tmdb.org/t/p/original/esqusThZ8KbEOT6NqIieocBk8gQ.jpg"
+  },
+  {
     "title": "The Amazing Spider-Man",
     "type": "series",
     "imdbId": "tt0076975",
@@ -22,14 +30,6 @@ export default [
     "id": "marvel_tt0077031",
     "releaseYear": "1977",
     "poster": "https://image.tmdb.org/t/p/original/8q7uFuNuMWTWfcpnCpBuZa3KZXx.jpg"
-  },
-  {
-    "title": "Night Man",
-    "type": "series",
-    "imdbId": "tt0128886",
-    "id": "marvel_tt0128886",
-    "releaseYear": "1977",
-    "poster": "https://image.tmdb.org/t/p/original/esqusThZ8KbEOT6NqIieocBk8gQ.jpg"
   },
   {
     "title": "Mutant X",
@@ -56,12 +56,20 @@ export default [
     "poster": "https://image.tmdb.org/t/p/w500/gHUCCMy1vvj58tzE3dZqeC9SXus.jpg"
   },
   {
-    "title": "WHIH Newsfront",
+    "title": "Daredevil",
     "type": "series",
-    "imdbId": "tt5296048",
-    "id": "marvel_tt5296048",
+    "imdbId": "tt3322312",
+    "id": "marvel_tt3322312",
     "releaseYear": "2015",
-    "poster": "https://image.tmdb.org/t/p/original/2RAbC1bwYvE3kYr6PdYFUo6vmO6.jpg"
+    "poster": "https://image.tmdb.org/t/p/w500/QWbPaDxiB6LW2LjASknzYBvjMj.jpg"
+  },
+  {
+    "title": "Jessica Jones",
+    "type": "series",
+    "imdbId": "tt2357547",
+    "id": "marvel_tt2357547",
+    "releaseYear": "2015",
+    "poster": "https://image.tmdb.org/t/p/w500/paf9wL3mOW9LT3ZjRxXqJcjeMEv.jpg"
   },
   {
     "title": "Marvel's Agent Carter",
@@ -80,20 +88,12 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/7imMR8ySLCPG3LsNlGej8GGtXBg.jpg"
   },
   {
-    "title": "Daredevil",
+    "title": "WHIH Newsfront",
     "type": "series",
-    "imdbId": "tt3322312",
-    "id": "marvel_tt3322312",
+    "imdbId": "tt5296048",
+    "id": "marvel_tt5296048",
     "releaseYear": "2015",
-    "poster": "https://image.tmdb.org/t/p/w500/QWbPaDxiB6LW2LjASknzYBvjMj.jpg"
-  },
-  {
-    "title": "Jessica Jones",
-    "type": "series",
-    "imdbId": "tt2357547",
-    "id": "marvel_tt2357547",
-    "releaseYear": "2015",
-    "poster": "https://image.tmdb.org/t/p/w500/paf9wL3mOW9LT3ZjRxXqJcjeMEv.jpg"
+    "poster": "https://image.tmdb.org/t/p/original/2RAbC1bwYvE3kYr6PdYFUo6vmO6.jpg"
   },
   {
     "title": "Luke Cage",
@@ -112,12 +112,12 @@ export default [
     "poster": "https://image.tmdb.org/t/p/w500/bwJej7WdmGRMCMyuDlotwAqVX7S.jpg"
   },
   {
-    "title": "Legion",
+    "title": "Inhumans",
     "type": "series",
-    "imdbId": "tt5114356",
-    "id": "marvel_tt5114356",
+    "imdbId": "tt4154858",
+    "id": "marvel_tt4154858",
     "releaseYear": "2017",
-    "poster": "https://image.tmdb.org/t/p/original/4WLMWQgH3eXNP1aGrAuwlSiIx5j.jpg"
+    "poster": "https://image.tmdb.org/t/p/w500/zKfGip55oJ9tdzhyd9ayGyFFhuo.jpg"
   },
   {
     "title": "Iron Fist",
@@ -128,20 +128,28 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/4l6KD9HhtD6nCDEfg10Lp6C6zah.jpg"
   },
   {
+    "title": "Legion",
+    "type": "series",
+    "imdbId": "tt5114356",
+    "id": "marvel_tt5114356",
+    "releaseYear": "2017",
+    "poster": "https://image.tmdb.org/t/p/original/4WLMWQgH3eXNP1aGrAuwlSiIx5j.jpg"
+  },
+  {
+    "title": "Runaways",
+    "type": "series",
+    "imdbId": "tt1236246",
+    "id": "marvel_tt1236246",
+    "releaseYear": "2017",
+    "poster": "https://image.tmdb.org/t/p/w500/zceMrfO17AQkeWJZNra4O90s1vE.jpg"
+  },
+  {
     "title": "The Defenders",
     "type": "series",
     "imdbId": "tt4230076",
     "id": "marvel_tt4230076",
     "releaseYear": "2017",
     "poster": "https://image.tmdb.org/t/p/w500/49XzINhH4LFsgz7cx6TOPcHUJUL.jpg"
-  },
-  {
-    "title": "Inhumans",
-    "type": "series",
-    "imdbId": "tt4154858",
-    "id": "marvel_tt4154858",
-    "releaseYear": "2017",
-    "poster": "https://image.tmdb.org/t/p/w500/zKfGip55oJ9tdzhyd9ayGyFFhuo.jpg"
   },
   {
     "title": "The Gifted",
@@ -160,14 +168,6 @@ export default [
     "poster": "https://image.tmdb.org/t/p/w500/c86aUAhACPyloPtL2CH4ZP5hO7V.jpg"
   },
   {
-    "title": "Runaways",
-    "type": "series",
-    "imdbId": "tt1236246",
-    "id": "marvel_tt1236246",
-    "releaseYear": "2017",
-    "poster": "https://image.tmdb.org/t/p/w500/zceMrfO17AQkeWJZNra4O90s1vE.jpg"
-  },
-  {
     "title": "Cloak & Dagger",
     "type": "series",
     "imdbId": "tt5614844",
@@ -184,36 +184,12 @@ export default [
     "poster": "https://image.tmdb.org/t/p/w500/5QmcKsepYpO9XYsWNLwsiULoaAu.jpg"
   },
   {
-    "title": "Marvel Studios: Legends",
+    "title": "Hawkeye",
     "type": "series",
-    "imdbId": "tt13650480",
-    "id": "marvel_tt13650480",
+    "imdbId": "tt10160804",
+    "id": "marvel_tt10160804",
     "releaseYear": "2021",
-    "poster": "https://image.tmdb.org/t/p/original/EpDuYIK81YtCUT3gH2JDpyj8Qk.jpg"
-  },
-  {
-    "title": "WandaVision",
-    "type": "series",
-    "imdbId": "tt9140560",
-    "id": "marvel_tt9140560",
-    "releaseYear": "2021",
-    "poster": "https://image.tmdb.org/t/p/w500/sgCHdBJ1w0vJNUrW1Sq90KEXv9j.jpg"
-  },
-  {
-    "title": "The Falcon and the Winter Soldier",
-    "type": "series",
-    "imdbId": "tt9208876",
-    "id": "marvel_tt9208876",
-    "releaseYear": "2021",
-    "poster": "https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
-  },
-  {
-    "title": "Marvel Studios Assembled",
-    "type": "series",
-    "imdbId": "tt14094206",
-    "id": "marvel_tt14094206",
-    "releaseYear": "2021",
-    "poster": "https://image.tmdb.org/t/p/original/50lfJlcUuR8Nit0YSudfK59EUM7.jpg"
+    "poster": "https://image.tmdb.org/t/p/w500/ct5pNE5dDHryHLDnxyZPYcqO1sz.jpg"
   },
   {
     "title": "Loki",
@@ -224,20 +200,36 @@ export default [
     "poster": "https://image.tmdb.org/t/p/w500/oJdVHUYrjdS2IqiNztVIP4GPB1p.jpg"
   },
   {
-    "title": "Hawkeye",
+    "title": "Marvel Studios Assembled",
     "type": "series",
-    "imdbId": "tt10160804",
-    "id": "marvel_tt10160804",
+    "imdbId": "tt14094206",
+    "id": "marvel_tt14094206",
     "releaseYear": "2021",
-    "poster": "https://image.tmdb.org/t/p/w500/ct5pNE5dDHryHLDnxyZPYcqO1sz.jpg"
+    "poster": "https://image.tmdb.org/t/p/original/50lfJlcUuR8Nit0YSudfK59EUM7.jpg"
   },
   {
-    "title": "Marvel Studios Legends",
+    "title": "Marvel Studios: Legends",
     "type": "series",
     "imdbId": "tt13650480",
     "id": "marvel_tt13650480",
     "releaseYear": "2021",
-    "poster": "https://image.tmdb.org/t/p/w500/EpDuYIK81YtCUT3gH2JDpyj8Qk.jpg"
+    "poster": "https://image.tmdb.org/t/p/original/EpDuYIK81YtCUT3gH2JDpyj8Qk.jpg"
+  },
+  {
+    "title": "The Falcon and the Winter Soldier",
+    "type": "series",
+    "imdbId": "tt9208876",
+    "id": "marvel_tt9208876",
+    "releaseYear": "2021",
+    "poster": "https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+  },
+  {
+    "title": "WandaVision",
+    "type": "series",
+    "imdbId": "tt9140560",
+    "id": "marvel_tt9140560",
+    "releaseYear": "2021",
+    "poster": "https://image.tmdb.org/t/p/w500/sgCHdBJ1w0vJNUrW1Sq90KEXv9j.jpg"
   },
   {
     "title": "Marvel Lucha Libre Edition: El origen de la mascara",
@@ -280,20 +272,20 @@ export default [
     "poster": "https://image.tmdb.org/t/p/w500/f5ZMzzCvt2IzVDxr54gHPv9jlC9.jpg"
   },
   {
-    "title": "Echo",
-    "type": "series",
-    "imdbId": "tt13966962",
-    "id": "marvel_tt13966962",
-    "releaseYear": "2024",
-    "poster": "https://image.tmdb.org/t/p/w500/vFyJH630cF68LohVYjQW49074Sy.jpg"
-  },
-  {
     "title": "Agatha All Along",
     "type": "series",
     "imdbId": "tt15571732",
     "id": "marvel_tt15571732",
     "releaseYear": "2024",
     "poster": "https://image.tmdb.org/t/p/w500/rwfDv05ck4McdvqdWU2sQVsQV2j.jpg"
+  },
+  {
+    "title": "Echo",
+    "type": "series",
+    "imdbId": "tt13966962",
+    "id": "marvel_tt13966962",
+    "releaseYear": "2024",
+    "poster": "https://image.tmdb.org/t/p/w500/vFyJH630cF68LohVYjQW49074Sy.jpg"
   },
   {
     "title": "Daredevil: Born Again",
@@ -312,19 +304,19 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/UbbIyltRQbbnVSnbVqTBjmkSRC.jpg"
   },
   {
-    "title": "Wonder Man",
-    "type": "series",
-    "imdbId": "tt21066182",
-    "id": "marvel_tt21066182",
-    "releaseYear": "2026",
-    "poster": "https://image.tmdb.org/t/p/original/kboHD8dkHvkAuszYxq89BYJhq9t.jpg"
-  },
-  {
     "title": "VisionQuest",
     "type": "series",
     "imdbId": "tt23112594",
     "id": "marvel_tt23112594",
     "releaseYear": "2026",
     "poster": "https://image.tmdb.org/t/p/original/6j60tGRAjBmWRPTOEwhW6oRbPMP.jpg"
+  },
+  {
+    "title": "Wonder Man",
+    "type": "series",
+    "imdbId": "tt21066182",
+    "id": "marvel_tt21066182",
+    "releaseYear": "2026",
+    "poster": "https://image.tmdb.org/t/p/original/kboHD8dkHvkAuszYxq89BYJhq9t.jpg"
   }
 ];

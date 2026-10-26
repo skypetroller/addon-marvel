@@ -1,0 +1,89 @@
+name: Auto-update Marvel catalog data
+
+on:
+  schedule:
+    - cron: '17 6 * * 1' # Monday 06:17 UTC
+    - cron: '17 6 * * 4' # Thursday 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Discover new Marvel releases
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+        run: node scripts/discoverNewReleases.js
+
+      - name: Refresh metadata cache
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+        run: node scripts/buildMetadata.js --refresh
+
+      - name: Guard against degraded data
+        run: node scripts/guardDataQuality.js
+
+      - name: Stamp data freshness
+        run: node scripts/writeLastUpdated.js
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Data/
+          if git diff --staged --quiet; then
+            echo "Nothing changed."
+          elif git diff --staged --quiet -- . ':(exclude)Data/lastUpdated.json'; then
+            git commit -m "Updater ran, no data changes"
+            git push
+          else
+            node scripts/bumpVersion.js
+            git add Data/ manifest.json package.json package-lock.json
+            BODY=$(node -e "try{const r=require('./discovery-report.json');const items=r.items||[];console.log(items.length?items.map(i=>'- '+i.title+' ('+i.year+') ['+i.type+']').join('\n'):'Routine metadata refresh, no new titles.')}catch(e){console.log('Routine metadata refresh.')}")
+            git commit -m "Auto-update Marvel catalog data" -m "$BODY"
+            git push
+          fi
+
+      - name: Close failure issue on success
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "Data updater failed" --json number --jq '.[].number' | while read -r n; do
+            gh issue close "$n" --repo "$GITHUB_REPOSITORY" --comment "The updater succeeded again: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          done
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "Data updater failed" --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body "The updater failed again: $RUN_URL"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "Data updater failed" --body "The scheduled data update failed. Check the run: $RUN_URL"
+          fi

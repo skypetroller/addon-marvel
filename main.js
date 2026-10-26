@@ -1,318 +1,655 @@
-import express from "npm:express@4";
-import path from "node:path";
-import fs from "node:fs";
-import cors from "npm:cors@2";
-import compression from "npm:compression@1";
-import axios from "npm:axios@1";
-import pLimit from "npm:p-limit@3";
-import { LRUCache } from "npm:lru-cache@10";
+import 'dotenv/config';
+import express from 'express';
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import cors from 'cors';
+import compression from 'compression';
+import axios from 'axios';
+import pLimit from 'p-limit';
+import { LRUCache } from 'lru-cache';
 
-import chronologicalData from "./Data/chronologicalData.js";
-import xmenData from "./Data/xmenData.js";
-import moviesData from "./Data/moviesData.js";
-import seriesData from "./Data/seriesData.js";
-import animationsData from "./Data/animationsData.js";
-import releaseData from "./Data/releaseData.js";
+import chronologicalData from './Data/chronologicalData.js';
+import releaseData from './Data/releaseData.js';
+import xmenData from './Data/xmenData.js';
+import moviesData from './Data/moviesData.js';
+import seriesData from './Data/seriesData.js';
+import animationsData from './Data/animationsData.js';
+import {
+  buildMetadataEntry,
+  isValidUrl,
+  lookupIdFor,
+  normalizeType,
+  FALLBACK_POSTER,
+} from './lib/metadata.js';
 
-const __dirname = import.meta.dirname;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const TMDB_KEY = process.env.TMDB_API_KEY || '';
+const OMDB_KEY = process.env.OMDB_API_KEY || '';
+const PORT = Number(process.env.PORT || 7000);
 
-// Metadata pré-construído pelo scripts/buildMetadata.js (corres localmente
-// com Node, não no Deno Deploy). Fica em disco, é pequeno, e é lido UMA VEZ
-// no arranque — os pedidos normais de catálogo não tocam no TMDb.
-const METADATA_CACHE_PATH = path.join(__dirname, "Data", "metadataCache.json");
+const manifestTemplate = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'manifest.json'), 'utf-8')
+);
+
+// Pre-built by scripts/buildMetadata.js. Read once at startup so normal
+// catalog requests never touch TMDB or OMDb.
+const METADATA_CACHE_PATH = path.join(__dirname, 'Data', 'metadataCache.json');
 let metadataCache = {};
 try {
-    metadataCache = JSON.parse(fs.readFileSync(METADATA_CACHE_PATH, "utf-8"));
-    console.log(`Metadata cache carregado: ${Object.keys(metadataCache).length} itens.`);
+  metadataCache = JSON.parse(fs.readFileSync(METADATA_CACHE_PATH, 'utf-8'));
+  console.log(`Metadata cache loaded: ${Object.keys(metadataCache).length} entries.`);
 } catch (err) {
-    console.warn("Sem metadataCache.json ainda (corre scripts/buildMetadata.js localmente). A usar fallback ao vivo.");
+  console.warn('No metadataCache.json found. Falling back to live metadata lookups.');
 }
 
-const tmdbKey = Deno.env.get("TMDB_API_KEY") ?? "";
-const port = Number(Deno.env.get("PORT") ?? 7000);
+let lastUpdated = null;
+try {
+  lastUpdated = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'Data', 'lastUpdated.json'), 'utf-8')
+  ).updatedAt;
+} catch (err) {
+  // Stamp file is created by the updater; absence is fine before the first run.
+}
 
 const app = express();
+app.set('trust proxy', true);
+
 app.use(compression());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
 
+// Cache policy:
+//   - Catalog payloads are cached for an hour (they change at most twice a week).
+//   - Manifests, configure page, /health and /api/catalogs must always revalidate,
+//     otherwise version bumps and freshness stamps get stuck in a CDN cache.
 app.use((req, res, next) => {
-    res.setHeader("Cache-Control", "public, max-age=1814400"); // 3 semanas
-    next();
+  const isCatalogData =
+    /^\/(catalog|rpdb)\//.test(req.path) &&
+    req.path.endsWith('.json') &&
+    !req.path.endsWith('manifest.json');
+  res.setHeader('Cache-Control', isCatalogData ? 'public, max-age=3600' : 'no-cache');
+  next();
 });
 
-app.get("/health", (req, res) => res.status(200).send("OK"));
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.get("/catalog/:ids/configure", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "configure.html"));
-});
-app.get("/configure", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "configure.html"));
-});
+// ---------------------------------------------------------------------------
+// Catalog sources
+// ---------------------------------------------------------------------------
 
-// Cache dos catálogos já montados (não confundir com metadataCache acima:
-// aqui é só o resultado final por catálogo, para não repetir o trabalho
-// de merge/filter a cada pedido idêntico).
-const cachedCatalog = new LRUCache({
-    max: 20,
-    ttl: 1000 * 60 * 60 * 24 * 30, // 30 dias
-    maxSize: 8_000_000, // ~8 MB
-    sizeCalculation: (value) => JSON.stringify(value).length,
-});
-
-const FALLBACK_META = {
-    id: "tt0371746",
-    type: "movie",
-    name: "Iron Man",
-    poster: "https://m.media-amazon.com/images/M/MV5BMTczNTI2ODUwOF5BMl5BanBnXkFtZTcwMTU0NTIzMw@@._V1_SX300.jpg",
-    description: "After being held captive in an Afghan cave, billionaire engineer Tony Stark creates a unique weaponized suit of armor to fight evil.",
-    releaseInfo: "2008",
-    imdbRating: "7.9",
-    genres: ["Action", "Adventure", "Sci-Fi"],
-};
+const CATALOG_DEFS = [
+  {
+    id: 'marvel-mcu',
+    name: 'MCU Chronologically Ordered',
+    category: 'Timeline',
+    description: 'The Marvel Cinematic Universe in story order',
+    icon: 'shield-halved',
+  },
+  {
+    id: 'release-order',
+    name: 'MCU Release Order',
+    category: 'Timeline',
+    description: 'The MCU in the order the films and shows were released',
+    icon: 'calendar-days',
+  },
+  {
+    id: 'xmen',
+    name: 'X-Men',
+    category: 'Curated',
+    description: 'The X-Men film series in release order',
+    icon: 'xmen-logo',
+  },
+  {
+    id: 'movies',
+    name: 'Movies',
+    category: 'Content Type',
+    description: 'Every Marvel movie in the catalog, oldest to newest',
+    icon: 'film',
+  },
+  {
+    id: 'series',
+    name: 'Series',
+    category: 'Content Type',
+    description: 'Live-action Marvel television series',
+    icon: 'tv',
+  },
+  {
+    id: 'animations',
+    name: 'Animations',
+    category: 'Content Type',
+    description: 'Marvel animated films and series',
+    icon: 'palette',
+  },
+  {
+    id: 'marvel-new',
+    name: 'New Releases',
+    category: 'Timeline',
+    description: 'Marvel titles released or added in the last 120 days',
+    icon: 'star',
+  },
+  {
+    id: 'marvel-upcoming',
+    name: 'Coming Soon',
+    category: 'Timeline',
+    description: 'Announced Marvel titles with a confirmed future release date',
+    icon: 'clock',
+  },
+];
 
 const DATA_SOURCES = {
-    "marvel-mcu": { data: chronologicalData, name: "MCU Chronologically Ordered" },
-    "release-order": { data: releaseData, name: "MCU Release Ordered" },
-    "xmen": { data: xmenData, name: "X-Men" },
-    "movies": { data: moviesData, name: "Movies" },
-    "series": { data: seriesData, name: "Series" },
-    "animations": { data: animationsData, name: "Animations" },
+  'marvel-mcu': () => chronologicalData,
+  'release-order': () => releaseData,
+  xmen: () => xmenData,
+  movies: () => moviesData,
+  series: () => seriesData,
+  animations: () => animationsData,
 };
 
-function isValidUrl(str) {
-    try {
-        new URL(str);
-        return str && str !== "N/A" && !str.includes("undefined");
-    } catch {
-        return false;
+function getAllUniqueItems() {
+  const seen = new Map();
+  for (const items of [
+    chronologicalData,
+    releaseData,
+    xmenData,
+    moviesData,
+    seriesData,
+    animationsData,
+  ]) {
+    for (const item of items) {
+      const lookupId = lookupIdFor(item);
+      if (lookupId && !seen.has(lookupId)) seen.set(lookupId, item);
     }
+  }
+  return [...seen.values()];
 }
 
-// Fallback ao vivo — só corre para um item que ainda não esteja no cache
-// pré-construído (ex: acabou de ser adicionado a um Data/*.js e ainda
-// ninguém correu o buildMetadata.js). Não bloqueia o resto do catálogo.
-async function fetchLiveMeta(item) {
-    const type = item.type || "movie";
-    const lookupId = item.imdbId || item.id;
+const ALL_ITEMS = getAllUniqueItems();
 
-    if (!tmdbKey) {
-        return {
-            id: lookupId,
-            type,
-            name: item.title,
-            poster: item.poster || FALLBACK_META.poster,
-            description: item.description || "No description available.",
-            releaseInfo: item.releaseYear || "N/A",
-            imdbRating: "N/A",
-            genres: ["Action", "Adventure"],
-        };
-    }
-
-    try {
-        const searchUrl = `https://api.themoviedb.org/3/search/${type}?api_key=${tmdbKey}&query=${encodeURIComponent(item.title)}&year=${item.releaseYear || ""}`;
-        const searchRes = await axios.get(searchUrl).catch(() => ({ data: {} }));
-        const tmdbId = searchRes.data?.results?.[0]?.id;
-        let tmdbData = {};
-        if (tmdbId) {
-            const detailsRes = await axios.get(`https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${tmdbKey}&language=en-US`).catch(() => ({ data: {} }));
-            tmdbData = detailsRes.data || {};
-        }
-        const poster = (item.poster && isValidUrl(item.poster))
-            ? item.poster
-            : (tmdbData.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbData.poster_path}` : FALLBACK_META.poster);
-
-        return {
-            id: lookupId,
-            type,
-            name: item.title,
-            poster,
-            description: item.description || tmdbData.overview || "No description available.",
-            releaseInfo: item.releaseYear || (tmdbData.release_date || tmdbData.first_air_date || "").split("-")[0] || "N/A",
-            imdbRating: tmdbData.vote_average ? tmdbData.vote_average.toFixed(1) : "N/A",
-            genres: tmdbData.genres?.map((g) => g.name) || ["Action", "Adventure"],
-        };
-    } catch (err) {
-        console.warn(`Fallback ao vivo falhou para ${item.title}: ${err.message}`);
-        return { ...FALLBACK_META, id: lookupId, name: item.title };
-    }
+function releaseDateFor(item) {
+  const cached = metadataCache[lookupIdFor(item)];
+  return item.releaseDate || cached?.releaseDate || null;
 }
 
-// Cache da validade de cada poster RPDB (por chave+imdbId), 24h. Evita
-// repetir o pedido HEAD a cada catálogo pedido pelo mesmo utilizador.
-const rpdbValidityCache = new LRUCache({
-    max: 20000,
-    ttl: 1000 * 60 * 60 * 24,
-});
-
-async function isValidRpdbPoster(rpdbKey, imdbId) {
-    if (!rpdbKey || !imdbId) return false;
-
-    const cacheKey = `${rpdbKey}:${imdbId}`;
-    if (rpdbValidityCache.has(cacheKey)) {
-        return rpdbValidityCache.get(cacheKey);
-    }
-
-    let isValid = false;
-    try {
-        const res = await axios.head(`https://api.ratingposterdb.com/${rpdbKey}/imdb/poster-default/${imdbId}.jpg`);
-        isValid = res.status === 200;
-    } catch {
-        isValid = false;
-    }
-
-    rpdbValidityCache.set(cacheKey, isValid);
-    return isValid;
+function newReleaseSource() {
+  const cutoff = Date.now() - 120 * 24 * 60 * 60 * 1000;
+  const today = new Date().toISOString().slice(0, 10);
+  const seen = new Set();
+  return ALL_ITEMS.filter((item) => {
+    const releaseDate = releaseDateFor(item);
+    // Newly discovered titles use addedAt (even if they are still upcoming);
+    // the initial backfill only counts titles that have already been released.
+    const added =
+      item.addedAt ||
+      (releaseDate && releaseDate <= today ? releaseDate : null);
+    if (!added) return false;
+    if (new Date(added).getTime() < cutoff) return false;
+    const lookupId = lookupIdFor(item);
+    if (seen.has(lookupId)) return false;
+    seen.add(lookupId);
+    return true;
+  }).sort((a, b) => {
+    const da = new Date(a.addedAt || releaseDateFor(a) || 0);
+    const db = new Date(b.addedAt || releaseDateFor(b) || 0);
+    if (db - da !== 0) return db - da;
+    return String(b.releaseDate || b.releaseYear || '').localeCompare(
+      String(a.releaseDate || a.releaseYear || '')
+    );
+  });
 }
 
-async function replaceRpdbPosters(rpdbKey, metas) {
-    if (!rpdbKey) return metas;
-    const limit = pLimit(5);
-    return Promise.all(metas.map((meta) => limit(async () => {
-        const imdbId = meta.id.startsWith("tt") ? meta.id : null;
-        if (imdbId && await isValidRpdbPoster(rpdbKey, imdbId)) {
-            return { ...meta, poster: `https://api.ratingposterdb.com/${rpdbKey}/imdb/poster-default/${imdbId}.jpg` };
-        }
-        return meta;
-    })));
+function upcomingSource() {
+  const today = new Date().toISOString().slice(0, 10);
+  return ALL_ITEMS.filter((item) => {
+    const releaseDate = releaseDateFor(item);
+    return releaseDate && releaseDate > today;
+  }).sort((a, b) => {
+    const da = releaseDateFor(a) || '9999-12-31';
+    const db = releaseDateFor(b) || '9999-12-31';
+    return da.localeCompare(db) || String(a.title).localeCompare(String(b.title));
+  });
 }
 
-// Constrói os metas de um catálogo: quase sempre 100% a partir do cache
-// pré-construído (sem I/O de rede nenhum). Só faz fetch ao vivo para os
-// itens que faltarem no cache.
-async function buildMetas(catalogId) {
-    const source = DATA_SOURCES[catalogId];
-    if (!source) return null;
+const DYNAMIC_SOURCES = {
+  'marvel-new': newReleaseSource,
+  'marvel-upcoming': upcomingSource,
+};
 
-    const limit = pLimit(5);
-    const metas = await Promise.all(source.data.map((item) => limit(async () => {
-        const lookupId = item.imdbId || item.id;
-        const cached = metadataCache[lookupId];
-        if (cached) return cached;
-        return fetchLiveMeta(item);
-    })));
-
-    return metas.filter(Boolean);
+function resolveCatalogSource(id) {
+  const staticSource = DATA_SOURCES[id];
+  if (staticSource) {
+    const items = staticSource();
+    return Array.isArray(items) ? items : null;
+  }
+  const dynamicSource = DYNAMIC_SOURCES[id];
+  if (dynamicSource) return dynamicSource();
+  return null;
 }
 
-async function handleCatalogRequest(req, res, { cacheKeyPrefix }) {
-    const { id } = req.params;
-    let rpdbKey = req.query.rpdb || null;
+const catalogExtrasCache = {};
 
-    if (req.params.rpdbKey) rpdbKey = req.params.rpdbKey;
-    if (req.params.catalogsParam?.includes(":") && !req.params.catalogsParam.endsWith(":")) {
-        rpdbKey = req.params.catalogsParam.split(":")[1] || rpdbKey;
-    }
+function getCatalogExtras(id) {
+  if (catalogExtrasCache[id]) return catalogExtrasCache[id];
 
-    const cacheKey = `${cacheKeyPrefix}-${id}`;
+  let genres = [];
+  try {
+    const source = resolveCatalogSource(id) || [];
+    const seen = new Set();
+    source.forEach((item) => {
+      const cached = metadataCache[lookupIdFor(item)];
+      const values = cached?.genres || item.genres || [];
+      values.forEach((genre) => {
+        const name = typeof genre === 'string' ? genre : genre?.name;
+        if (name) seen.add(name);
+      });
+    });
+    genres = [...seen].sort((a, b) => a.localeCompare(b));
+  } catch (err) {
+    // Unknown/bad source: still expose search and paging.
+  }
 
-    try {
-        let metas;
-        if (cachedCatalog.has(cacheKey)) {
-            metas = cachedCatalog.get(cacheKey).metas;
-        } else {
-            metas = await buildMetas(id);
-            if (!metas || !metas.length) {
-                return res.json({ metas: [FALLBACK_META] });
-            }
-            cachedCatalog.set(cacheKey, { metas });
-        }
-
-        const finalMetas = rpdbKey ? await replaceRpdbPosters(rpdbKey, metas) : metas;
-        return res.json({ metas: finalMetas });
-    } catch (err) {
-        console.error(`Erro no catálogo ${id}: ${err.message}`);
-        return res.json({ metas: [FALLBACK_META] });
-    }
+  const extras = [{ name: 'search' }, { name: 'skip' }];
+  if (genres.length) extras.splice(1, 0, { name: 'genre', options: genres });
+  catalogExtrasCache[id] = extras;
+  return extras;
 }
 
 function getAllCatalogs() {
-    return [
-        { type: "Marvel", id: "marvel-mcu", name: "MCU Chronologically Order" },
-        { type: "Marvel", id: "release-order", name: "MCU Release Order" },
-        { type: "Marvel", id: "xmen", name: "X-Men" },
-        { type: "Marvel", id: "movies", name: "Movies" },
-        { type: "Marvel", id: "series", name: "Series" },
-        { type: "Marvel", id: "animations", name: "Animations" },
-    ];
+  return CATALOG_DEFS.map((catalog) => ({
+    type: 'Marvel',
+    id: catalog.id,
+    name: catalog.name,
+    extra: getCatalogExtras(catalog.id),
+  }));
 }
 
-function buildManifest({ id, description, catalogs }) {
-    return {
-        id,
-        name: "Marvel",
-        description,
-        version: "2.0.0",
-        logo: "https://raw.githubusercontent.com/joaogonp/addon-marvel/main/public/assets/icon.png",
-        background: "https://raw.githubusercontent.com/joaogonp/addon-marvel/main/public/assets/background.jpg",
-        catalogs,
-        resources: ["catalog"],
-        types: ["movie", "series"],
-        idPrefixes: ["marvel_", "tt"],
-        behaviorHints: { configurable: true },
-        contactEmail: "jpnapsp@gmail.com",
-    };
+// ---------------------------------------------------------------------------
+// Metadata
+// ---------------------------------------------------------------------------
+
+function toStremioMeta(meta, item = null) {
+  const lookupId = meta.id || lookupIdFor(item);
+  const type = normalizeType(meta.type || item?.type);
+  const name = String(meta.name || item?.title || 'Unknown');
+  const genres = Array.isArray(meta.genres) ? [...new Set(meta.genres.filter(Boolean))] : [];
+  const poster = meta.poster || item?.poster || FALLBACK_POSTER;
+  const description = meta.description || item?.description || 'No description available.';
+  const releaseInfo = String(meta.releaseInfo || item?.releaseYear || 'N/A');
+  const imdbRating = meta.imdbRating && meta.imdbRating !== 'N/A' ? String(meta.imdbRating) : 'N/A';
+
+  return {
+    id: lookupId,
+    type,
+    name: type === 'series' ? name.replace(/ Season \d+$/i, '') : name,
+    ...(meta.logo ? { logo: meta.logo } : {}),
+    poster,
+    description,
+    releaseInfo,
+    ...(meta.releaseDate ? { released: meta.releaseDate } : {}),
+    imdbRating,
+    genres,
+    ...(meta.trailer
+      ? { trailers: [{ source: meta.trailer, type: 'Trailer' }] }
+      : {}),
+  };
 }
 
-app.get("/manifest.json", (req, res) => {
-    const rpdbKey = req.query.rpdb || null;
-    const id = rpdbKey ? "com.joaogonp.marveladdon.rpdb" : "com.joaogonp.marveladdon";
-    res.json(buildManifest({
-        id,
-        description: "Watch the entire Marvel catalog! MCU and X-Men (chronologically organized), Movies, Series, and Animations!",
-        catalogs: getAllCatalogs(),
-    }));
-});
+const liveMetaLimit = pLimit(5);
+const liveMetaCache = new LRUCache({ max: 500, ttl: 1000 * 60 * 60 * 24 });
 
-app.get("/rpdb/:rpdbKey/manifest.json", (req, res) => {
-    const { rpdbKey } = req.params;
-    res.json(buildManifest({
-        id: `com.joaogonp.marveladdon.rpdb.${rpdbKey.slice(0, 8)}`,
-        description: "Watch the entire Marvel catalog with IMDb ratings on posters!",
-        catalogs: getAllCatalogs(),
-    }));
-});
+async function fetchLiveMeta(item) {
+  const lookupId = lookupIdFor(item);
+  if (liveMetaCache.has(lookupId)) {
+    return toStremioMeta(liveMetaCache.get(lookupId), item);
+  }
 
-app.get("/catalog/:catalogsParam/manifest.json", (req, res) => {
-    const { catalogsParam } = req.params;
-    let selectedCatalogIds = catalogsParam;
-    let rpdbKey = null;
-
-    if (catalogsParam.includes(":") && !catalogsParam.endsWith(":")) {
-        const [idsPart, key] = catalogsParam.split(":");
-        selectedCatalogIds = idsPart;
-        rpdbKey = key;
+  try {
+    const entry = await liveMetaLimit(() =>
+      buildMetadataEntry(item, {
+        tmdbKey: TMDB_KEY,
+        omdbKey: OMDB_KEY,
+        existing: metadataCache[lookupId] || null,
+      })
+    );
+    if (entry) {
+      metadataCache[lookupId] = entry;
+      liveMetaCache.set(lookupId, entry);
+      return toStremioMeta(entry, item);
     }
-    selectedCatalogIds = selectedCatalogIds.split(",").map((s) => s.trim());
+  } catch (err) {
+    console.warn(`Live metadata lookup failed for ${item.title}: ${err.message}`);
+  }
 
-    const selected = getAllCatalogs().filter((c) => selectedCatalogIds.includes(c.id));
-    if (!selected.length) return res.status(404).send("No valid catalogs selected.");
+  return toStremioMeta(
+    {
+      id: lookupId,
+      type: normalizeType(item.type),
+      name: item.title,
+      poster: item.poster || FALLBACK_POSTER,
+      description: item.description || 'No description available.',
+      releaseInfo: item.releaseYear || 'N/A',
+      imdbRating: 'N/A',
+      genres: [],
+    },
+    item
+  );
+}
 
-    const customId = (rpdbKey
-        ? `com.joaogonp.marveladdon.custom.${selectedCatalogIds.join(".")}.rpdb`
-        : `com.joaogonp.marveladdon.custom.${selectedCatalogIds.join(".")}`
-    ).slice(0, 100);
+async function buildMetas(source) {
+  const metas = await Promise.all(
+    source.map((item) => {
+      const lookupId = lookupIdFor(item);
+      const cached = metadataCache[lookupId];
+      if (cached) return Promise.resolve(toStremioMeta(cached, item));
+      return fetchLiveMeta(item);
+    })
+  );
+  return metas.filter(Boolean);
+}
 
-    res.json(buildManifest({
-        id: customId,
-        description: `Your custom Marvel catalog: ${selected.map((c) => c.name).join(", ")}`,
-        catalogs: selected,
-    }));
+// ---------------------------------------------------------------------------
+// RPDB posters
+// ---------------------------------------------------------------------------
+
+const rpdbValidityCache = new LRUCache({
+  max: 20000,
+  ttl: 1000 * 60 * 60 * 24,
 });
 
-app.get("/api/catalogs", (req, res) => {
-    res.json(getAllCatalogs().map((c) => ({ ...c })));
+async function isValidRpdbPoster(rpdbKey, imdbId) {
+  if (!rpdbKey || !imdbId) return false;
+  const cacheKey = `${rpdbKey}:${imdbId}`;
+  if (rpdbValidityCache.has(cacheKey)) return rpdbValidityCache.get(cacheKey);
+
+  let isValid = false;
+  try {
+    const res = await axios.head(
+      `https://api.ratingposterdb.com/${rpdbKey}/imdb/poster-default/${imdbId}.jpg`,
+      { timeout: 8000 }
+    );
+    isValid = res.status === 200;
+  } catch (err) {
+    isValid = false;
+  }
+  rpdbValidityCache.set(cacheKey, isValid);
+  return isValid;
+}
+
+async function replaceRpdbPosters(rpdbKey, metas) {
+  if (!rpdbKey) return metas;
+  const limit = pLimit(8);
+  return Promise.all(
+    metas.map((meta) =>
+      limit(async () => {
+        const imdbId = meta.id?.startsWith('tt') ? meta.id : null;
+        if (imdbId && (await isValidRpdbPoster(rpdbKey, imdbId))) {
+          return {
+            ...meta,
+            poster: `https://api.ratingposterdb.com/${rpdbKey}/imdb/poster-default/${imdbId}.jpg`,
+          };
+        }
+        return meta;
+      })
+    )
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Catalog responses
+// ---------------------------------------------------------------------------
+
+const cachedCatalog = new LRUCache({
+  max: 30,
+  ttl: 1000 * 60 * 60 * 24 * 30,
+  maxSize: 12_000_000,
+  sizeCalculation: (value) => JSON.stringify(value).length,
 });
 
-// Três formas de pedir o mesmo catálogo, servidas por um único handler
-app.get("/catalog/:type/:id.json", (req, res) => handleCatalogRequest(req, res, { cacheKeyPrefix: "default" }));
-app.get("/rpdb/:rpdbKey/catalog/:type/:id.json", (req, res) => handleCatalogRequest(req, res, { cacheKeyPrefix: "rpdb" }));
-app.get("/catalog/:catalogsParam/catalog/:type/:id.json", (req, res) => handleCatalogRequest(req, res, { cacheKeyPrefix: "custom" }));
+function parseExtras(req) {
+  const extras = Object.assign({}, req.query);
+  if (req.params?.extra) {
+    try {
+      for (const [key, value] of new URLSearchParams(req.params.extra)) {
+        extras[key] = value;
+      }
+    } catch (err) {
+      // Malformed extras segment: ignore.
+    }
+  }
+  return extras;
+}
 
-app.get("/", (req, res) => res.redirect("/configure"));
+function extractRpdbKey(req, catalogsParam = null) {
+  let key = req.params?.rpdbKey || req.query?.rpdb || null;
 
-app.listen(port, () => {
-    console.log(`Marvel Addon a correr na porta ${port}`);
+  if (!key && catalogsParam && catalogsParam.includes(':')) {
+    key = catalogsParam.split(':').slice(1).join(':') || null;
+  }
+
+  if (!key) {
+    const referer = req.get('Referrer') || '';
+    const match = referer.match(/\/rpdb\/([^/]+)\/manifest\.json/);
+    if (match?.[1]) key = decodeURIComponent(match[1]);
+  }
+
+  if (!key) return null;
+  try {
+    return decodeURIComponent(key);
+  } catch (err) {
+    return key;
+  }
+}
+
+async function buildCatalogResponse(req, res, { id, rpdbKey }) {
+  const extras = parseExtras(req);
+  const skip = Math.max(0, parseInt(extras.skip, 10) || 0);
+  const limit = Math.min(100, Math.max(1, parseInt(extras.limit, 10) || 100));
+  const genre = extras.genre;
+  const search = String(extras.search || '').trim().toLowerCase();
+
+  try {
+    let metas;
+    const cacheKey = `catalog-${id}`;
+    if (cachedCatalog.has(cacheKey)) {
+      metas = cachedCatalog.get(cacheKey).metas;
+    } else {
+      const source = resolveCatalogSource(id);
+      if (!source) {
+        console.warn(`Unrecognized catalog ID: ${id}`);
+        return res.json({ metas: [] });
+      }
+      metas = await buildMetas(source);
+      cachedCatalog.set(cacheKey, { metas });
+    }
+
+    let filtered = metas;
+    if (genre) {
+      filtered = filtered.filter((meta) => Array.isArray(meta.genres) && meta.genres.includes(genre));
+    }
+    if (search) {
+      filtered = filtered.filter((meta) => String(meta.name || '').toLowerCase().includes(search));
+    }
+
+    let page = filtered.slice(skip, skip + limit);
+    if (rpdbKey) page = await replaceRpdbPosters(rpdbKey, page);
+
+    return res.json({ metas: page });
+  } catch (err) {
+    console.error(`Catalog error for ${id}: ${err.message}`);
+    return res.json({ metas: [] });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Manifests
+// ---------------------------------------------------------------------------
+
+function baseUrl(req) {
+  return `${req.protocol}://${req.get('host')}`;
+}
+
+function buildManifest(req, { id, name, description, catalogs }) {
+  return {
+    ...manifestTemplate,
+    id,
+    name: name || manifestTemplate.name,
+    description,
+    catalogs,
+    logo: `${baseUrl(req)}/assets/icon.png`,
+    background: `${baseUrl(req)}/assets/background.jpg`,
+  };
+}
+
+app.get('/manifest.json', (req, res) => {
+  const rpdbKey = req.query.rpdb || null;
+  const id = rpdbKey
+    ? `com.skypetroller.marveluniverse.rpdb.${String(rpdbKey).slice(0, 8)}`
+    : 'com.skypetroller.marveluniverse';
+
+  res.json(
+    buildManifest(req, {
+      id,
+      description: rpdbKey
+        ? 'The entire Marvel catalog with IMDb ratings on posters! MCU, X-Men, movies, series and animations.'
+        : 'The entire Marvel catalog! MCU and X-Men in curated order, plus movies, series and animations.',
+      catalogs: getAllCatalogs(),
+    })
+  );
 });
+
+app.get('/rpdb/:rpdbKey/manifest.json', (req, res) => {
+  const { rpdbKey } = req.params;
+  res.json(
+    buildManifest(req, {
+      id: `com.skypetroller.marveluniverse.rpdb.${String(rpdbKey).slice(0, 8)}`,
+      description: 'The entire Marvel catalog with IMDb ratings on posters!',
+      catalogs: getAllCatalogs(),
+    })
+  );
+});
+
+app.get('/catalog/:catalogsParam/manifest.json', (req, res) => {
+  const { catalogsParam } = req.params;
+  let selectedCatalogIds = catalogsParam;
+  let rpdbKey = null;
+
+  if (catalogsParam.includes(':') && !catalogsParam.endsWith(':')) {
+    const [idsPart, ...keyParts] = catalogsParam.split(':');
+    selectedCatalogIds = idsPart;
+    rpdbKey = keyParts.join(':');
+  }
+
+  const ids = selectedCatalogIds.split(',').map((value) => value.trim()).filter(Boolean);
+  const selected = getAllCatalogs().filter((catalog) => ids.includes(catalog.id));
+  if (!selected.length) return res.status(404).send('No valid catalogs selected.');
+
+  const customId = (
+    rpdbKey
+      ? `com.skypetroller.marveluniverse.custom.${ids.join('.')}.rpdb`
+      : `com.skypetroller.marveluniverse.custom.${ids.join('.')}`
+  ).slice(0, 100);
+
+  res.json(
+    buildManifest(req, {
+      id: customId,
+      name: 'Marvel Custom',
+      description: `Your custom Marvel catalog: ${selected.map((catalog) => catalog.name).join(', ')}`,
+      catalogs: selected,
+    })
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Pages and API
+// ---------------------------------------------------------------------------
+
+app.get('/catalog/:ids/configure', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'configure.html'));
+});
+
+app.get('/configure', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'configure.html'));
+});
+
+app.get('/api/catalogs', (req, res) => {
+  const withCounts = CATALOG_DEFS.map((catalog) => {
+    let count = 0;
+    try {
+      const source = resolveCatalogSource(catalog.id);
+      count = source ? source.length : 0;
+    } catch (err) {
+      count = 0;
+    }
+    return { ...catalog, count };
+  });
+  res.json(withCounts);
+});
+
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: Math.round(process.uptime()),
+    version: manifestTemplate.version,
+    updatedAt: lastUpdated,
+    catalogs: CATALOG_DEFS.length,
+    cachedTitles: Object.keys(metadataCache).length,
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Catalog endpoints (default, custom, RPDB, path-style extras)
+// ---------------------------------------------------------------------------
+
+app.get('/rpdb/:rpdbKey/catalog/:type/:id.json', (req, res) =>
+  buildCatalogResponse(req, res, {
+    id: req.params.id,
+    rpdbKey: extractRpdbKey(req),
+  })
+);
+
+app.get('/catalog/:catalogsParam/catalog/:type/:id.json', (req, res) =>
+  buildCatalogResponse(req, res, {
+    id: req.params.id,
+    rpdbKey: extractRpdbKey(req, req.params.catalogsParam),
+  })
+);
+
+app.get('/catalog/:type/:id.json', (req, res) =>
+  buildCatalogResponse(req, res, {
+    id: req.params.id,
+    rpdbKey: extractRpdbKey(req),
+  })
+);
+
+app.get('/rpdb/:rpdbKey/catalog/:type/:id/:extra.json', (req, res) =>
+  buildCatalogResponse(req, res, {
+    id: req.params.id,
+    rpdbKey: extractRpdbKey(req),
+  })
+);
+
+app.get('/catalog/:catalogsParam/catalog/:type/:id/:extra.json', (req, res) =>
+  buildCatalogResponse(req, res, {
+    id: req.params.id,
+    rpdbKey: extractRpdbKey(req, req.params.catalogsParam),
+  })
+);
+
+app.get('/catalog/:type/:id/:extra.json', (req, res) =>
+  buildCatalogResponse(req, res, {
+    id: req.params.id,
+    rpdbKey: extractRpdbKey(req),
+  })
+);
+
+app.get('/', (req, res) => res.redirect('/configure'));
+
+app.listen(PORT, () => {
+  console.log(`Marvel Addon running at http://localhost:${PORT}/`);
+  console.log(`Configure page: http://localhost:${PORT}/configure`);
+  console.log(`TMDB key: ${TMDB_KEY ? 'configured' : 'missing (live fallback disabled)'}`);
+  console.log(`OMDb key: ${OMDB_KEY ? 'configured' : 'missing (IMDb ratings fall back to TMDB)'}`);
+});
+
+export { app, buildCatalogResponse, toStremioMeta };

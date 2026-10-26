@@ -1,5 +1,13 @@
 export default [
   {
+    "title": "Fantastic Four",
+    "type": "series",
+    "imdbId": "tt0061250",
+    "id": "marvel_tt0061250",
+    "releaseYear": "1967",
+    "poster": "https://image.tmdb.org/t/p/original/8zwysNUXr5z3mDZSFEv1fZ8qo08.jpg"
+  },
+  {
     "title": "Spider-Man",
     "type": "series",
     "imdbId": "tt0061301",
@@ -10,26 +18,10 @@ export default [
   {
     "title": "Fantastic Four",
     "type": "series",
-    "imdbId": "tt0061250",
-    "id": "marvel_tt0061250",
-    "releaseYear": "1967",
-    "poster": "https://image.tmdb.org/t/p/original/8zwysNUXr5z3mDZSFEv1fZ8qo08.jpg"
-  },
-  {
-    "title": "Fantastic Four",
-    "type": "series",
     "imdbId": "tt0241100",
     "id": "marvel_tt0241100",
     "releaseYear": "1978",
     "poster": "https://image.tmdb.org/t/p/original/8Sm8WQ9Gm7fyJBimix2a05Cj6ON.jpg"
-  },
-  {
-    "title": "The Thing",
-    "type": "series",
-    "imdbId": "tt0077091",
-    "id": "marvel_tt0077091",
-    "releaseYear": "1979",
-    "poster": "https://image.tmdb.org/t/p/original/eDyeUNRBCIn2GeS4hIM0HT3xDBw.jpg"
   },
   {
     "title": "Spider-Woman",
@@ -38,6 +30,14 @@ export default [
     "id": "marvel_tt0197911",
     "releaseYear": "1979",
     "poster": "https://image.tmdb.org/t/p/original/cXiD1jVLjTyvO3w2jKq9QdlAYag.jpg"
+  },
+  {
+    "title": "The Thing",
+    "type": "series",
+    "imdbId": "tt0077091",
+    "id": "marvel_tt0077091",
+    "releaseYear": "1979",
+    "poster": "https://image.tmdb.org/t/p/original/eDyeUNRBCIn2GeS4hIM0HT3xDBw.jpg"
   },
   {
     "title": "Spider-Man",
@@ -72,14 +72,6 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/2OFwsFhAobczgJWnVdwd9oZAF2N.jpg"
   },
   {
-    "title": "Iron Man",
-    "type": "series",
-    "imdbId": "tt0115218",
-    "id": "marvel_tt0115218",
-    "releaseYear": "1994",
-    "poster": "https://image.tmdb.org/t/p/original/nTQWWH6CFtl37x1nPx8HRwbwvGn.jpg"
-  },
-  {
     "title": "Fantastic Four",
     "type": "series",
     "imdbId": "tt0187635",
@@ -88,7 +80,15 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/jy7fvS9ow4MadFZuhwadshj0yes.jpg"
   },
   {
-    "title": " Spider-Man",
+    "title": "Iron Man",
+    "type": "series",
+    "imdbId": "tt0115218",
+    "id": "marvel_tt0115218",
+    "releaseYear": "1994",
+    "poster": "https://image.tmdb.org/t/p/original/nTQWWH6CFtl37x1nPx8HRwbwvGn.jpg"
+  },
+  {
+    "title": "Spider-Man",
     "type": "series",
     "imdbId": "tt0112175",
     "id": "marvel_tt0112175",
@@ -128,20 +128,20 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/18rhdRDXAAHUTsbWtIQn2ZkjRL9.jpg"
   },
   {
-    "title": "Spider-Man Unlimited",
-    "type": "series",
-    "imdbId": "tt0207120",
-    "id": "marlvel_tt0207120",
-    "releaseYear": "1999",
-    "poster": "https://image.tmdb.org/t/p/original/hNdf1WmFil9IV7rabBe6PnAmYnI.jpg"
-  },
-  {
     "title": "Avengers: United They Stand",
     "type": "series",
     "imdbId": "tt0203247",
     "id": "marvel_tt0203247",
     "releaseYear": "1999",
     "poster": "https://image.tmdb.org/t/p/original/p2SrnKTQjLRXBCcTZtYkTZCwLpp.jpg"
+  },
+  {
+    "title": "Spider-Man Unlimited",
+    "type": "series",
+    "imdbId": "tt0207120",
+    "id": "marlvel_tt0207120",
+    "releaseYear": "1999",
+    "poster": "https://image.tmdb.org/t/p/original/hNdf1WmFil9IV7rabBe6PnAmYnI.jpg"
   },
   {
     "title": "X-Men: Evolution",
@@ -176,14 +176,6 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/zyMZ2boSccbaUjOkl6AdzLb6KKd.jpg"
   },
   {
-    "title": "X-Men: Darktide",
-    "type": "movie",
-    "imdbId": "tt2949494",
-    "id": "marvel_tt2949494",
-    "releaseYear": "2006",
-    "poster": "https://image.tmdb.org/t/p/original/2233WXs0oggdnb8IGOpBgmBQnBq.jpg"
-  },
-  {
     "title": "Ultimate Avengers 2",
     "type": "movie",
     "imdbId": "tt0803093",
@@ -192,12 +184,12 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/2bfVNvLKWaxFh1LiOKlvxgiHOXn.jpg"
   },
   {
-    "title": "The Invincible Iron Man",
+    "title": "X-Men: Darktide",
     "type": "movie",
-    "imdbId": "tt0903135",
-    "id": "marvel_tt0903135",
-    "releaseYear": "2007",
-    "poster": "https://image.tmdb.org/t/p/original/eebNTSRa5Hh5skPKGdGJIJpo9Ls.jpg"
+    "imdbId": "tt2949494",
+    "id": "marvel_tt2949494",
+    "releaseYear": "2006",
+    "poster": "https://image.tmdb.org/t/p/original/2233WXs0oggdnb8IGOpBgmBQnBq.jpg"
   },
   {
     "title": "Doctor Strange: The Sorcerer Supreme",
@@ -208,20 +200,12 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/oczXYdStbFituTIDharMhcXDAkg.jpg"
   },
   {
-    "title": "Spectacular Spider-Man",
-    "type": "series",
-    "imdbId": "tt0976192",
-    "id": "marvel_tt0976192",
-    "releaseYear": "2008",
-    "poster": "https://image.tmdb.org/t/p/original/gZW6uJR2f6pLmjRWABfEY4Q7VuQ.jpg"
-  },
-  {
-    "title": "Wolverine and the X-Men",
-    "type": "series",
-    "imdbId": "tt0772145",
-    "id": "m,arvel_tt0772145",
-    "releaseYear": "2008",
-    "poster": "https://image.tmdb.org/t/p/original/oSeJ2nESB77iC6SLo4qcqoadjdt.jpg"
+    "title": "The Invincible Iron Man",
+    "type": "movie",
+    "imdbId": "tt0903135",
+    "id": "marvel_tt0903135",
+    "releaseYear": "2007",
+    "poster": "https://image.tmdb.org/t/p/original/eebNTSRa5Hh5skPKGdGJIJpo9Ls.jpg"
   },
   {
     "title": "Iron Man: Armored Adventures",
@@ -240,12 +224,20 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/qp66vgUHDRaeFVvNIazrxQBI33h.jpg"
   },
   {
-    "title": "Super Hero Squad Show",
+    "title": "Spectacular Spider-Man",
     "type": "series",
-    "imdbId": "tt1388589",
-    "id": "marvel_tt1388589",
-    "releaseYear": "2009",
-    "poster": "https://image.tmdb.org/t/p/original/3CdaaPZdU1Xv2c6hDaSVWhsXtuO.jpg"
+    "imdbId": "tt0976192",
+    "id": "marvel_tt0976192",
+    "releaseYear": "2008",
+    "poster": "https://image.tmdb.org/t/p/original/gZW6uJR2f6pLmjRWABfEY4Q7VuQ.jpg"
+  },
+  {
+    "title": "Wolverine and the X-Men",
+    "type": "series",
+    "imdbId": "tt0772145",
+    "id": "m,arvel_tt0772145",
+    "releaseYear": "2008",
+    "poster": "https://image.tmdb.org/t/p/original/oSeJ2nESB77iC6SLo4qcqoadjdt.jpg"
   },
   {
     "title": "Hulk Vs.",
@@ -256,12 +248,12 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/gQw25SDF8vQYC7JRD3xW0V6YCjR.jpg"
   },
   {
-    "title": "The Avengers: Earth's Mightiest Heroes",
+    "title": "Super Hero Squad Show",
     "type": "series",
-    "imdbId": "tt1626038",
-    "id": "tt1626038",
-    "releaseYear": "2010",
-    "poster": "https://image.tmdb.org/t/p/original/nH1ROb4ujGRuDItJyn5UrYY5uOB.jpg"
+    "imdbId": "tt1388589",
+    "id": "marvel_tt1388589",
+    "releaseYear": "2009",
+    "poster": "https://image.tmdb.org/t/p/original/3CdaaPZdU1Xv2c6hDaSVWhsXtuO.jpg"
   },
   {
     "title": "Planet Hulk",
@@ -272,20 +264,20 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/5wCzY3sAs6zHIzzHIcTKN2g0pu8.jpg"
   },
   {
+    "title": "The Avengers: Earth's Mightiest Heroes",
+    "type": "series",
+    "imdbId": "tt1626038",
+    "id": "tt1626038",
+    "releaseYear": "2010",
+    "poster": "https://image.tmdb.org/t/p/original/nH1ROb4ujGRuDItJyn5UrYY5uOB.jpg"
+  },
+  {
     "title": "Thor: Tales of Asgard",
     "type": "movie",
     "imdbId": "tt1667903",
     "id": "marvel_tt1667903",
     "releaseYear": "2011",
     "poster": "https://image.tmdb.org/t/p/original/oh8jjEBbL0BEGT3Fy2DKhbE2D58.jpg"
-  },
-  {
-    "title": "Ultimate Spide-Man",
-    "type": "series",
-    "imdbId": "tt1722512",
-    "id": "marvel_tt1722512",
-    "releaseYear": "2012",
-    "poster": "https://image.tmdb.org/t/p/original/p276PkRJ5Wexq91DA5RkbxTYMDn.jpg"
   },
   {
     "title": "The Avengers: Assemble",
@@ -296,20 +288,20 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/aVYPq7FSvsdNQOXVIFnndXJPCXn.jpg"
   },
   {
+    "title": "Ultimate Spide-Man",
+    "type": "series",
+    "imdbId": "tt1722512",
+    "id": "marvel_tt1722512",
+    "releaseYear": "2012",
+    "poster": "https://image.tmdb.org/t/p/original/p276PkRJ5Wexq91DA5RkbxTYMDn.jpg"
+  },
+  {
     "title": "Hulk and the Agents of S.M.A.S.H.",
     "type": "series",
     "imdbId": "tt2455514",
     "id": "marvel_tt2455514",
     "releaseYear": "2013",
     "poster": "https://image.tmdb.org/t/p/original/xxJbuRwU3ssxxrxrI38URtLkf6L.jpg"
-  },
-  {
-    "title": "Iron Man: Rise of Technovore",
-    "type": "movie",
-    "imdbId": "tt2654124",
-    "id": "marvel_tt2654124",
-    "releaseYear": "2013",
-    "poster": "https://image.tmdb.org/t/p/original/eHDez1uN5X2ZAq4niX7HvhyZIIO.jpg"
   },
   {
     "title": "Iron Man and Hulk: Heroes United",
@@ -320,20 +312,12 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/e7F2ZNA7wMneoSKGonLKjDmjFEd.jpg"
   },
   {
-    "title": "Marvel Disk Wars: The Avengers",
-    "type": "series",
-    "imdbId": "tt3644256",
-    "id": "marvel_tt3644256",
-    "releaseYear": "2014",
-    "poster": "https://image.tmdb.org/t/p/original/6wQAZaWSvBJOIIt68cqmC0KJjeE.jpg"
-  },
-  {
-    "title": "Big Hero 6",
+    "title": "Iron Man: Rise of Technovore",
     "type": "movie",
-    "imdbId": "tt2245084",
-    "id": "marvel_tt2245084",
-    "releaseYear": "2014",
-    "poster": "https://image.tmdb.org/t/p/original/2mxS4wUimwlLmI1xp6QW6NSU361.jpg"
+    "imdbId": "tt2654124",
+    "id": "marvel_tt2654124",
+    "releaseYear": "2013",
+    "poster": "https://image.tmdb.org/t/p/original/eHDez1uN5X2ZAq4niX7HvhyZIIO.jpg"
   },
   {
     "title": "Avengers Confidential: Black Widow & Punisher",
@@ -344,12 +328,28 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/wJcyYVRPZDOZOD2w0r2R6wuZqqN.jpg"
   },
   {
+    "title": "Big Hero 6",
+    "type": "movie",
+    "imdbId": "tt2245084",
+    "id": "marvel_tt2245084",
+    "releaseYear": "2014",
+    "poster": "https://image.tmdb.org/t/p/original/2mxS4wUimwlLmI1xp6QW6NSU361.jpg"
+  },
+  {
     "title": "Iron Man & Captain America: Heroes United",
     "type": "movie",
     "imdbId": "tt3911200",
     "id": "marvel_tt3911200",
     "releaseYear": "2014",
     "poster": "https://image.tmdb.org/t/p/original/AcFFHZGkpLUs31bKf42z8UVLimS.jpg"
+  },
+  {
+    "title": "Marvel Disk Wars: The Avengers",
+    "type": "series",
+    "imdbId": "tt3644256",
+    "id": "marvel_tt3644256",
+    "releaseYear": "2014",
+    "poster": "https://image.tmdb.org/t/p/original/6wQAZaWSvBJOIIt68cqmC0KJjeE.jpg"
   },
   {
     "title": "Guardians of the Galaxy",
@@ -384,6 +384,14 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/rOwoxKn4aW5LDhfuI0TfpGpucbO.jpg"
   },
   {
+    "title": "Big Hero 6: The Series",
+    "type": "series",
+    "imdbId": "tt5515212",
+    "id": "marlvel_tt5515212",
+    "releaseYear": "2017",
+    "poster": "https://image.tmdb.org/t/p/original/ldG4xXImCPyv5U5gbRmlB8On842.jpg"
+  },
+  {
     "title": "Future Avengers",
     "type": "series",
     "imdbId": "tt6591446",
@@ -400,15 +408,7 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/dKdcyyHUR5WTMnrbPdYN5y9xPVp.jpg"
   },
   {
-    "title": "Big Hero 6: The Series",
-    "type": "series",
-    "imdbId": "tt5515212",
-    "id": "marlvel_tt5515212",
-    "releaseYear": "2017",
-    "poster": "https://image.tmdb.org/t/p/original/ldG4xXImCPyv5U5gbRmlB8On842.jpg"
-  },
-  {
-    "title": " Super Hero Adventures",
+    "title": "Super Hero Adventures",
     "type": "series",
     "imdbId": "tt7726152",
     "id": "marvel_tt7726152",
@@ -424,14 +424,6 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg"
   },
   {
-    "title": "LEGO Avengers: Climate Conundrum",
-    "type": "series",
-    "imdbId": "tt13783758",
-    "id": "marvel_tt13783758",
-    "releaseYear": "2020",
-    "poster": "https://image.tmdb.org/t/p/original/yeCEBB9eLeJ4nmj00ePD7eqeWYx.jpg"
-  },
-  {
     "title": "Battleworld",
     "type": "series",
     "imdbId": "tt12583300",
@@ -440,28 +432,12 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/7YSgKDJvpzWUHjdToca9GWoiHFd.jpg"
   },
   {
-    "title": "M.O.D.O.K.",
+    "title": "LEGO Avengers: Climate Conundrum",
     "type": "series",
-    "imdbId": "tt9811118",
-    "id": "marvel_tt9811118",
-    "releaseYear": "2021",
-    "poster": "https://image.tmdb.org/t/p/original/2kXRzRjQZs9kAIm3K9MkQgsZR9C.jpg"
-  },
-  {
-    "title": "Super Crooks",
-    "type": "series",
-    "imdbId": "tt14272628",
-    "id": "marvel_tt14272628",
-    "releaseYear": "2021",
-    "poster": "https://upload.wikimedia.org/wikipedia/en/d/d6/Super_Crooks_anime_poster.webp"
-  },
-  {
-    "title": "What If...?",
-    "type": "series",
-    "imdbId": "tt10168312",
-    "id": "marvel_tt10168312",
-    "releaseYear": "2021",
-    "poster": "https://image.tmdb.org/t/p/original/lztz5XBMG1x6Y5ubz7CxfPFsAcW.jpg"
+    "imdbId": "tt13783758",
+    "id": "marvel_tt13783758",
+    "releaseYear": "2020",
+    "poster": "https://image.tmdb.org/t/p/original/yeCEBB9eLeJ4nmj00ePD7eqeWYx.jpg"
   },
   {
     "title": "Hit-Monkey",
@@ -478,6 +454,38 @@ export default [
     "id": "marvel_tt21072140",
     "releaseYear": "2021",
     "poster": "https://image.tmdb.org/t/p/original/eyBifMbovoQbyuNXHOFYo7tsInp.jpg"
+  },
+  {
+    "title": "M.O.D.O.K.",
+    "type": "series",
+    "imdbId": "tt9811118",
+    "id": "marvel_tt9811118",
+    "releaseYear": "2021",
+    "poster": "https://image.tmdb.org/t/p/original/2kXRzRjQZs9kAIm3K9MkQgsZR9C.jpg"
+  },
+  {
+    "title": "Spidey and His Amazing Friends",
+    "type": "series",
+    "imdbId": "tt10862280",
+    "id": "marvel_tt10862280",
+    "releaseYear": "2021",
+    "poster": "https://image.tmdb.org/t/p/original/dA4S18rnLx4sWW8agmLLKUvRM7n.jpg"
+  },
+  {
+    "title": "Super Crooks",
+    "type": "series",
+    "imdbId": "tt14272628",
+    "id": "marvel_tt14272628",
+    "releaseYear": "2021",
+    "poster": "https://upload.wikimedia.org/wikipedia/en/d/d6/Super_Crooks_anime_poster.webp"
+  },
+  {
+    "title": "What If...?",
+    "type": "series",
+    "imdbId": "tt10168312",
+    "id": "marvel_tt10168312",
+    "releaseYear": "2021",
+    "poster": "https://image.tmdb.org/t/p/original/lztz5XBMG1x6Y5ubz7CxfPFsAcW.jpg"
   },
   {
     "title": "BayMax!",
@@ -504,6 +512,14 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/7nA9AjJ8iZvbBPsFPC2FNoFj568.jpg"
   },
   {
+    "title": "LEGO Avengers: Code Red",
+    "type": "movie",
+    "imdbId": "tt28477867",
+    "id": "marvel_tt28477867",
+    "releaseYear": "2023",
+    "poster": "https://image.tmdb.org/t/p/original/rDzig50dj7VpLwJ7SThbamETK1G.jpg"
+  },
+  {
     "title": "Moon Girl and Devil Dinosaur",
     "type": "series",
     "imdbId": "tt8041658",
@@ -514,18 +530,10 @@ export default [
   {
     "title": "Spider-Man: Across the Spider-Verse",
     "type": "movie",
-    "imdbId": "tt9362722", 
+    "imdbId": "tt9362722",
     "id": "marvel_tt9362722",
     "releaseYear": "2023",
     "poster": "https://image.tmdb.org/t/p/original/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg"
-  },
-  {
-    "title": "LEGO Avengers: Code Red",
-    "type": "movie",
-    "imdbId": "tt28477867",
-    "id": "marvel_tt28477867",
-    "releaseYear": "2023",
-    "poster": "https://image.tmdb.org/t/p/original/rDzig50dj7VpLwJ7SThbamETK1G.jpg"
   },
   {
     "title": "LEGO Avengers: Mission Demolition",
@@ -536,28 +544,12 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/goFO9r09JXotKRcawP46jhPX2H0.jpg"
   },
   {
-    "title": "Spidey and His Amazing Friends",
-    "type": "series",
-    "imdbId": "tt10862280",
-    "id": "marvel_tt10862280",
-    "releaseYear": "2021",
-    "poster": "https://image.tmdb.org/t/p/original/dA4S18rnLx4sWW8agmLLKUvRM7n.jpg"
-  },
-  {
     "title": "X-Men '97",
     "type": "series",
     "imdbId": "tt16026746",
     "id": "marlve_tt16026746",
     "releaseYear": "2024",
     "poster": "https://image.tmdb.org/t/p/original/9Ycz7yYRf9V4jk3YXwcZhFtbNcF.jpg"
-  },
-  {
-    "title": "Your Friendly Neighborhood Spider-Man",
-    "type": "series",
-    "imdbId": "tt16027074",
-    "id": "marvel_tt16027074",
-    "releaseYear": "2025",
-    "poster": "https://image.tmdb.org/t/p/original/kjcsNeqF52YUQ2rUBGLMHwLkxvR.jpg"
   },
   {
     "title": "Eyes of Wakanda",
@@ -568,12 +560,109 @@ export default [
     "poster": "https://image.tmdb.org/t/p/original/bG23nZW96LxmWkJjsagRZI9hF6t.jpg"
   },
   {
+    "tmdbId": 274388,
+    "title": "Iron Man and His Awesome Friends",
+    "type": "series",
+    "imdbId": "tt33997565",
+    "id": "marvel_tt33997565",
+    "releaseYear": "2025",
+    "releaseDate": "2025-08-11",
+    "poster": "https://image.tmdb.org/t/p/w500/3NlFaIdOkBg2VC3Imi1kbeeGynw.jpg",
+    "overview": "Follow the adventures (and misadventures) of best friends and super geniuses, Tony Stark, Riri Williams and Amadeus Cho as they work together to solve problems both big and small and protect their city.",
+    "genres": [
+      {
+        "id": 16,
+        "name": "Animation"
+      },
+      {
+        "id": 10762,
+        "name": "Kids"
+      },
+      {
+        "id": 10765,
+        "name": "Sci-Fi & Fantasy"
+      }
+    ],
+    "addedAt": "2026-10-26",
+    "discovered": true
+  },
+  {
+    "tmdbId": 305165,
+    "title": "LEGO Marvel Avengers: Strange Tails",
+    "type": "series",
+    "imdbId": "tt38692893",
+    "id": "marvel_tt38692893",
+    "releaseYear": "2025",
+    "releaseDate": "2025-11-14",
+    "poster": "https://image.tmdb.org/t/p/w500/AkjaZgQWiXlLbgMR2ofT0b57VFh.jpg",
+    "overview": "Hawkeye and The Avengers have made saving the world look easy. But now they face their wildest threat yet: SOCIAL MEDIA. To save the world, a new team must be recruited to help our heroes contend with an influencer bent on cataclysmic destruction.",
+    "genres": [
+      {
+        "id": 10751,
+        "name": "Family"
+      },
+      {
+        "id": 16,
+        "name": "Animation"
+      },
+      {
+        "id": 10765,
+        "name": "Sci-Fi & Fantasy"
+      },
+      {
+        "id": 10759,
+        "name": "Action & Adventure"
+      }
+    ],
+    "addedAt": "2026-10-26",
+    "discovered": true
+  },
+  {
     "title": "Marvel Zombies",
     "type": "series",
     "imdbId": "tt16027014",
     "id": "marvel_tt16027014",
     "releaseYear": "2025",
     "poster": "https://image.tmdb.org/t/p/original/ifJayoMnxGF6Kgfn3xXfNcjtCrM.jpg"
+  },
+  {
+    "tmdbId": 294895,
+    "title": "Meet Iron Man and His Awesome Friends",
+    "type": "series",
+    "imdbId": "tt37452743",
+    "id": "marvel_tt37452743",
+    "releaseYear": "2025",
+    "releaseDate": "2025-07-14",
+    "poster": "https://image.tmdb.org/t/p/w500/gg1Jo5iwoiuVwxGV7FgWxBlZSh5.jpg",
+    "overview": "Join young genius inventor Tony Stark (Iron Man) and his team of heroic friends as they embark on thrilling adventures, using their tech, teamwork, and quick thinking to save the day!",
+    "genres": [
+      {
+        "id": 10762,
+        "name": "Kids"
+      },
+      {
+        "id": 16,
+        "name": "Animation"
+      },
+      {
+        "id": 10759,
+        "name": "Action & Adventure"
+      },
+      {
+        "id": 10765,
+        "name": "Sci-Fi & Fantasy"
+      }
+    ],
+    "addedAt": "2026-10-26",
+    "discovered": true
+  },
+  {
+    "title": "Your Friendly Neighborhood Spider-Man",
+    "type": "series",
+    "imdbId": "tt16027074",
+    "id": "marvel_tt16027074",
+    "releaseYear": "2025",
+    "poster": "https://image.tmdb.org/t/p/original/kjcsNeqF52YUQ2rUBGLMHwLkxvR.jpg"
   },
   {
     "title": "Spider-Man: Beyond the Spider-Verse",
