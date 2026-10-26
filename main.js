@@ -80,6 +80,44 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// In-memory request counters so we can confirm whether a Stremio client is
+// actually reaching this deployment after an install. Resets on restart.
+const requestStats = {
+  startedAt: new Date().toISOString(),
+  manifests: 0,
+  catalogs: 0,
+  lastManifestAt: null,
+  lastCatalogAt: null,
+  lastUserAgent: null,
+  clients: {},
+};
+
+function noteRequest(kind, req) {
+  const ua = String(req.get('user-agent') || 'unknown').slice(0, 160);
+  requestStats.lastUserAgent = ua;
+  requestStats.clients[ua] = (requestStats.clients[ua] || 0) + 1;
+  const clients = Object.keys(requestStats.clients);
+  if (clients.length > 20) delete requestStats.clients[clients[0]];
+
+  const now = new Date().toISOString();
+  if (kind === 'manifest') {
+    requestStats.manifests += 1;
+    requestStats.lastManifestAt = now;
+  } else {
+    requestStats.catalogs += 1;
+    requestStats.lastCatalogAt = now;
+  }
+}
+
+app.use((req, res, next) => {
+  if (req.path.endsWith('/manifest.json')) {
+    noteRequest('manifest', req);
+  } else if (/^\/(?:catalog|rpdb)\//.test(req.path) && req.path.endsWith('.json')) {
+    noteRequest('catalog', req);
+  }
+  next();
+});
+
 // ---------------------------------------------------------------------------
 // Catalog sources
 // ---------------------------------------------------------------------------
@@ -335,6 +373,15 @@ function toStremioMeta(meta, item = null) {
   const releaseInfo = String(meta.releaseInfo || item?.releaseYear || 'N/A');
   const imdbRating = meta.imdbRating && meta.imdbRating !== 'N/A' ? String(meta.imdbRating) : 'N/A';
 
+  // Stremio's core deserializes `released` as a chrono DateTime, which rejects
+  // a bare `YYYY-MM-DD`. One invalid item fails the whole catalog response and
+  // the row renders empty, so always send a full ISO timestamp.
+  const released = meta.releaseDate
+    ? (/^\d{4}-\d{2}-\d{2}$/.test(String(meta.releaseDate))
+        ? `${meta.releaseDate}T00:00:00.000Z`
+        : String(meta.releaseDate))
+    : null;
+
   return {
     id: lookupId,
     type,
@@ -343,7 +390,7 @@ function toStremioMeta(meta, item = null) {
     poster,
     description,
     releaseInfo,
-    ...(meta.releaseDate ? { released: meta.releaseDate } : {}),
+    ...(released ? { released } : {}),
     imdbRating,
     genres,
     ...(meta.trailer
@@ -665,6 +712,7 @@ app.get('/health', (req, res) => {
     updatedAt: lastUpdated,
     catalogs: catalogVariants().length,
     cachedTitles: Object.keys(metadataCache).length,
+    requests: requestStats,
   });
 });
 
