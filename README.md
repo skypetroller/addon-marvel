@@ -2,9 +2,13 @@
 
 A self-hosted continuation of [joaogonp/addon-marvel](https://github.com/joaogonp/addon-marvel), rebuilt to run on Node/Render after the original Deno Deploy host went offline.
 
-**Live addon:** _coming online after the first Render deploy_
+**Live addon:** https://addon-marvel-a6rd.onrender.com
 
-**Configure page:** `https://addon-marvel-skypetroller.onrender.com/configure` (once deployed)
+**Configure page:** https://addon-marvel-a6rd.onrender.com/configure
+
+**Manifest:** https://addon-marvel-a6rd.onrender.com/manifest.json
+
+**Stremio install:** `stremio://addon-marvel-a6rd.onrender.com/manifest.json`
 
 ---
 
@@ -43,7 +47,7 @@ The MCU chronological and release-order lists are curated. The updater adds new 
 ### Render (recommended)
 
 1. Open the Blueprint deploy link: **https://render.com/deploy?repo=https://github.com/skypetroller/addon-marvel**
-2. Select the repo and create the `addon-marvel-skypetroller` web service.
+2. Select the repo and create the web service (the live service is `addon-marvel-a6rd`).
 3. Add the environment variables:
    - `TMDB_API_KEY` — TMDB API key (v3)
    - `OMDB_API_KEY` — OMDb API key (free tier is fine)
