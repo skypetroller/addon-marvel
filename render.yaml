@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: addon-marvel
+    name: addon-marvel-skypetroller
     env: node
     plan: free
     buildCommand: npm ci

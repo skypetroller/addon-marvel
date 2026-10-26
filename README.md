@@ -4,7 +4,7 @@ A self-hosted continuation of [joaogonp/addon-marvel](https://github.com/joaogon
 
 **Live addon:** _coming online after the first Render deploy_
 
-**Configure page:** `https://<your-service>.onrender.com/configure`
+**Configure page:** `https://addon-marvel-skypetroller.onrender.com/configure` (once deployed)
 
 ---
 
@@ -43,7 +43,7 @@ The MCU chronological and release-order lists are curated. The updater adds new 
 ### Render (recommended)
 
 1. Open the Blueprint deploy link: **https://render.com/deploy?repo=https://github.com/skypetroller/addon-marvel**
-2. Select the repo and create the `addon-marvel` web service.
+2. Select the repo and create the `addon-marvel-skypetroller` web service.
 3. Add the environment variables:
    - `TMDB_API_KEY` — TMDB API key (v3)
    - `OMDB_API_KEY` — OMDb API key (free tier is fine)
