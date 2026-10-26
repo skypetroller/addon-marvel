@@ -1,6 +1,6 @@
 {
   "name": "addon-marvel",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "private": true,
   "type": "module",
   "description": "Marvel addon for Stremio — self-hosted continuation of joaogonp/addon-marvel",

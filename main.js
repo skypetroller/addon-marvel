@@ -32,6 +32,11 @@ const manifestTemplate = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'manifest.json'), 'utf-8')
 );
 
+// Stremio caches catalog state per top-level manifest ID (see stremio-bugs
+// #2806). A bumped version or catalog ID is not enough to clear it, so the
+// addon uses a fresh ID to force clients to treat it as a new addon.
+const ADDON_ID = 'com.skypetroller.marveluniverse.v2';
+
 // Pre-built by scripts/buildMetadata.js. Read once at startup so normal
 // catalog requests never touch TMDB or OMDb.
 const METADATA_CACHE_PATH = path.join(__dirname, 'Data', 'metadataCache.json');
@@ -556,8 +561,8 @@ function buildManifest(req, { id, name, description, catalogs }) {
 app.get('/manifest.json', (req, res) => {
   const rpdbKey = req.query.rpdb || null;
   const id = rpdbKey
-    ? `com.skypetroller.marveluniverse.rpdb.${String(rpdbKey).slice(0, 8)}`
-    : 'com.skypetroller.marveluniverse';
+    ? `${ADDON_ID}.rpdb.${String(rpdbKey).slice(0, 8)}`
+    : ADDON_ID;
 
   res.json(
     buildManifest(req, {
@@ -574,7 +579,7 @@ app.get('/rpdb/:rpdbKey/manifest.json', (req, res) => {
   const { rpdbKey } = req.params;
   res.json(
     buildManifest(req, {
-      id: `com.skypetroller.marveluniverse.rpdb.${String(rpdbKey).slice(0, 8)}`,
+      id: `${ADDON_ID}.rpdb.${String(rpdbKey).slice(0, 8)}`,
       description: 'The entire Marvel catalog with IMDb ratings on posters!',
       catalogs: getAllCatalogs(),
     })
@@ -612,8 +617,8 @@ app.get('/catalog/:catalogsParam/manifest.json', (req, res) => {
 
   const customId = (
     rpdbKey
-      ? `com.skypetroller.marveluniverse.custom.${ids.join('.')}.rpdb`
-      : `com.skypetroller.marveluniverse.custom.${ids.join('.')}`
+      ? `${ADDON_ID}.custom.${ids.join('.')}.rpdb`
+      : `${ADDON_ID}.custom.${ids.join('.')}`
   ).slice(0, 100);
 
   res.json(
