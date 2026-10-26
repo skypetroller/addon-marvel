@@ -2,13 +2,21 @@
   "id": "com.skypetroller.marveluniverse",
   "name": "Marvel",
   "description": "The entire Marvel catalog! MCU and X-Men in curated order, plus movies, series and animations.",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "logo": "https://addon-marvel-a6rd.onrender.com/assets/icon.png",
   "background": "https://addon-marvel-a6rd.onrender.com/assets/background.jpg",
   "catalogs": [],
-  "resources": ["catalog"],
-  "types": ["movie", "series"],
-  "idPrefixes": ["tt", "marvel_"],
+  "resources": [
+    "catalog"
+  ],
+  "types": [
+    "movie",
+    "series"
+  ],
+  "idPrefixes": [
+    "tt",
+    "marvel_"
+  ],
   "behaviorHints": {
     "configurable": true
   }

@@ -14,7 +14,7 @@ A self-hosted continuation of [joaogonp/addon-marvel](https://github.com/joaogon
 
 ## Features
 
-- **8 catalogs** — MCU Chronologically Ordered, MCU Release Order, X-Men, Movies, Series, Animations, New Releases and Coming Soon.
+- **12 catalogs** — MCU Chronologically Ordered, MCU Release Order, X-Men, Movies, Series, Animations, New Releases and Coming Soon, split into movie and series rows wherever a list contains both.
 - **Real metadata** — descriptions, posters, logos, genres, IMDb ratings and YouTube trailers for every cached title (TMDB + OMDb).
 - **Search, genre filters and paging** on every catalog.
 - **RatingPosterDB support** — optional RPDB key on the configure page.
@@ -29,14 +29,16 @@ A self-hosted continuation of [joaogonp/addon-marvel](https://github.com/joaogon
 
 | ID | Name |
 | --- | --- |
-| `marvel-mcu` | MCU Chronologically Ordered |
-| `release-order` | MCU Release Order |
+| `marvel-mcu-movies` / `marvel-mcu-series` | MCU Chronologically Ordered (Movies / Series) |
+| `release-order-movies` / `release-order-series` | MCU Release Order (Movies / Series) |
 | `xmen` | X-Men |
 | `movies` | Movies |
 | `series` | Series |
-| `animations` | Animations |
-| `marvel-new` | New Releases (added in the last 120 days) |
+| `animations-movies` / `animations-series` | Animations (Movies / Series) |
+| `marvel-new-movies` / `marvel-new-series` | New Releases (added in the last 120 days) |
 | `marvel-upcoming` | Coming Soon (confirmed future release dates) |
+
+Lists that contain both movies and series are exposed as `-movies` and `-series` catalog variants. Stremio only renders the standard `movie` and `series` types reliably, so this keeps every row visible on the Board, Discover and Android TV. Old custom install links that use a base ID (for example `marvel-mcu`) still work and expand to both variants.
 
 The MCU chronological and release-order lists are curated. The updater adds new titles to Movies / Series / Animations and surfaces them in New Releases; hand-placed MCU ordering stays manual.
 

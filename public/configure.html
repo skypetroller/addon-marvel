@@ -549,7 +549,10 @@
             },
             methods: {
                 iconFor(id) {
-                    return (CATALOG_META[id] && CATALOG_META[id].icon) || 'shield-alt';
+                    const baseId = String(id).replace(/-(movies|series)$/, '');
+                    return (CATALOG_META[id] && CATALOG_META[id].icon)
+                        || (CATALOG_META[baseId] && CATALOG_META[baseId].icon)
+                        || 'shield-alt';
                 },
                 fetchHealth() {
                     fetch('/health')

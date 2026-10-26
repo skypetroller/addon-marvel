@@ -79,6 +79,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Catalog sources
 // ---------------------------------------------------------------------------
 
+// Stremio clients only render catalogs for the standard `movie` and `series`
+// types reliably. The original addon used a custom `Marvel` type, which some
+// clients (notably Android TV and several forks) silently drop. Keep the
+// curated mixed lists intact, but expose them under the standard types.
 const CATALOG_DEFS = [
   {
     id: 'marvel-mcu',
@@ -86,6 +90,7 @@ const CATALOG_DEFS = [
     category: 'Timeline',
     description: 'The Marvel Cinematic Universe in story order',
     icon: 'shield-halved',
+    type: 'movie',
   },
   {
     id: 'release-order',
@@ -93,6 +98,7 @@ const CATALOG_DEFS = [
     category: 'Timeline',
     description: 'The MCU in the order the films and shows were released',
     icon: 'calendar-days',
+    type: 'movie',
   },
   {
     id: 'xmen',
@@ -100,6 +106,7 @@ const CATALOG_DEFS = [
     category: 'Curated',
     description: 'The X-Men film series in release order',
     icon: 'xmen-logo',
+    type: 'movie',
   },
   {
     id: 'movies',
@@ -107,6 +114,7 @@ const CATALOG_DEFS = [
     category: 'Content Type',
     description: 'Every Marvel movie in the catalog, oldest to newest',
     icon: 'film',
+    type: 'movie',
   },
   {
     id: 'series',
@@ -114,6 +122,7 @@ const CATALOG_DEFS = [
     category: 'Content Type',
     description: 'Live-action Marvel television series',
     icon: 'tv',
+    type: 'series',
   },
   {
     id: 'animations',
@@ -121,6 +130,7 @@ const CATALOG_DEFS = [
     category: 'Content Type',
     description: 'Marvel animated films and series',
     icon: 'palette',
+    type: 'movie',
   },
   {
     id: 'marvel-new',
@@ -128,6 +138,7 @@ const CATALOG_DEFS = [
     category: 'Timeline',
     description: 'Marvel titles released or added in the last 120 days',
     icon: 'star',
+    type: 'movie',
   },
   {
     id: 'marvel-upcoming',
@@ -135,6 +146,7 @@ const CATALOG_DEFS = [
     category: 'Timeline',
     description: 'Announced Marvel titles with a confirmed future release date',
     icon: 'clock',
+    type: 'movie',
   },
 ];
 
@@ -224,7 +236,47 @@ function resolveCatalogSource(id) {
   }
   const dynamicSource = DYNAMIC_SOURCES[id];
   if (dynamicSource) return dynamicSource();
+
+  // Mixed catalogs are exposed as `<id>-movies` and `<id>-series` so every
+  // Stremio catalog only contains items of its own type.
+  const variant = String(id).match(/^(.*)-(movies|series)$/);
+  if (variant) {
+    const baseSource = resolveCatalogSource(variant[1]);
+    if (baseSource) {
+      const type = variant[2] === 'movies' ? 'movie' : 'series';
+      return baseSource.filter((item) => normalizeType(item.type) === type);
+    }
+  }
   return null;
+}
+
+function catalogVariants() {
+  const variants = [];
+  for (const catalog of CATALOG_DEFS) {
+    const source = resolveCatalogSource(catalog.id) || [];
+    const types = new Set(
+      source.map((item) => normalizeType(item.type)).filter(Boolean)
+    );
+
+    if (types.size <= 1) {
+      variants.push({
+        ...catalog,
+        type: [...types][0] || catalog.type,
+      });
+      continue;
+    }
+
+    for (const type of ['movie', 'series']) {
+      if (!types.has(type)) continue;
+      variants.push({
+        ...catalog,
+        id: `${catalog.id}-${type === 'movie' ? 'movies' : 'series'}`,
+        name: `${catalog.name} (${type === 'movie' ? 'Movies' : 'Series'})`,
+        type,
+      });
+    }
+  }
+  return variants;
 }
 
 const catalogExtrasCache = {};
@@ -256,8 +308,8 @@ function getCatalogExtras(id) {
 }
 
 function getAllCatalogs() {
-  return CATALOG_DEFS.map((catalog) => ({
-    type: 'Marvel',
+  return catalogVariants().map((catalog) => ({
+    type: catalog.type,
     id: catalog.id,
     name: catalog.name,
     extra: getCatalogExtras(catalog.id),
@@ -541,8 +593,22 @@ app.get('/catalog/:catalogsParam/manifest.json', (req, res) => {
   }
 
   const ids = selectedCatalogIds.split(',').map((value) => value.trim()).filter(Boolean);
-  const selected = getAllCatalogs().filter((catalog) => ids.includes(catalog.id));
-  if (!selected.length) return res.status(404).send('No valid catalogs selected.');
+  const allCatalogs = getAllCatalogs();
+  const selected = [];
+  for (const id of ids) {
+    const direct = allCatalogs.find((catalog) => catalog.id === id);
+    if (direct) {
+      selected.push(direct);
+      continue;
+    }
+    // Backwards compatibility: old custom links selected the logical catalog
+    // (e.g. `marvel-mcu`), which is now split into movie/series variants.
+    selected.push(...allCatalogs.filter((catalog) => catalog.id.startsWith(`${id}-`)));
+  }
+  const uniqueSelected = [
+    ...new Map(selected.map((catalog) => [catalog.id, catalog])).values(),
+  ];
+  if (!uniqueSelected.length) return res.status(404).send('No valid catalogs selected.');
 
   const customId = (
     rpdbKey
@@ -554,8 +620,8 @@ app.get('/catalog/:catalogsParam/manifest.json', (req, res) => {
     buildManifest(req, {
       id: customId,
       name: 'Marvel Custom',
-      description: `Your custom Marvel catalog: ${selected.map((catalog) => catalog.name).join(', ')}`,
-      catalogs: selected,
+      description: `Your custom Marvel catalog: ${uniqueSelected.map((catalog) => catalog.name).join(', ')}`,
+      catalogs: uniqueSelected,
     })
   );
 });
@@ -573,7 +639,7 @@ app.get('/configure', (req, res) => {
 });
 
 app.get('/api/catalogs', (req, res) => {
-  const withCounts = CATALOG_DEFS.map((catalog) => {
+  const withCounts = catalogVariants().map((catalog) => {
     let count = 0;
     try {
       const source = resolveCatalogSource(catalog.id);
@@ -592,7 +658,7 @@ app.get('/health', (req, res) => {
     uptime: Math.round(process.uptime()),
     version: manifestTemplate.version,
     updatedAt: lastUpdated,
-    catalogs: CATALOG_DEFS.length,
+    catalogs: catalogVariants().length,
     cachedTitles: Object.keys(metadataCache).length,
   });
 });
