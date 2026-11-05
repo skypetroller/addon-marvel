@@ -2105,11 +2105,14 @@
     "genres": [
       "Action & Adventure",
       "Animation",
-      "Comedy"
+      "Comedy",
+      "Kids",
+      "Family",
+      "Sci-Fi & Fantasy"
     ],
     "tmdbId": 21781,
     "trailer": null,
-    "updatedAt": "2026-10-26"
+    "updatedAt": "2026-11-05"
   },
   "tt13966962": {
     "id": "tt13966962",
