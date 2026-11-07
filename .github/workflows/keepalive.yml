@@ -3,9 +3,9 @@ name: Keep addons awake
 # Render's free tier gives each workspace 750 instance-hours per month and
 # spins a service down after 15 minutes without traffic. Keeping both addons
 # awake 24/7 would need ~1,460 hours and suspend them mid-month, so this
-# workflow keeps both warm during a shared 12-hour window instead:
-#   10:00-22:00 UTC (the last ping is at ~21:45; Render's idle timer covers
-#   the remaining 15 minutes).
+# workflow keeps both warm during a shared daily window instead:
+#   pings run 09:55-21:30 UTC; Render's idle timer keeps the services awake
+#   until ~21:45. The five-minute early start is grace for scheduler jitter.
 #
 # GitHub throttles short scheduled workflows (a */10 cron often runs only a
 # few times a day), so each run is a long-lived job that pings every 9
@@ -31,14 +31,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:
-      - name: Ping both addons until 21:45 UTC
+      - name: Ping both addons until 21:30 UTC
         run: |
           end=$((SECONDS + 20700)) # stay under GitHub's 6-hour job limit
           while [ $SECONDS -lt $end ]; do
             now=$((10#$(date -u +%H%M)))
-            # Five-minute grace period for an early scheduler start.
-            if [ "$now" -lt 955 ] || [ "$now" -ge 2145 ]; then
-              echo "Outside the 09:55-21:45 UTC keepalive window at $(date -u +%H:%M) UTC"
+            if [ "$now" -lt 955 ] || [ "$now" -ge 2130 ]; then
+              echo "Outside the 09:55-21:30 UTC ping window at $(date -u +%H:%M) UTC"
               break
             fi
 
@@ -50,5 +49,12 @@ jobs:
               && echo "$(date -u +%H:%M) dc ok" \
               || echo "$(date -u +%H:%M) dc ping failed"
 
-            sleep 540
+            # Never sleep past the job budget; the job timeout is 350 minutes.
+            remaining=$((end - SECONDS))
+            if [ "$remaining" -le 0 ]; then break; fi
+            if [ "$remaining" -lt 540 ]; then
+              sleep "$remaining"
+            else
+              sleep 540
+            fi
           done
