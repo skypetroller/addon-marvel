@@ -96,7 +96,7 @@ The same workflow is intentionally present in both the Marvel and DC repositorie
 ## Running locally
 
 ```bash
-git clone https://github.com/skypetroller-addons/addon-marvel.git
+git clone https://github.com/skypetroller/addon-marvel.git
 cd addon-marvel
 npm ci
 ```
