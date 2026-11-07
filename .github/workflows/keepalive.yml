@@ -1,0 +1,54 @@
+name: Keep addons awake
+
+# Render's free tier gives each workspace 750 instance-hours per month and
+# spins a service down after 15 minutes without traffic. Keeping both addons
+# awake 24/7 would need ~1,460 hours and suspend them mid-month, so this
+# workflow keeps both warm during a shared 12-hour window instead:
+#   10:00-22:00 UTC (the last ping is at ~21:45; Render's idle timer covers
+#   the remaining 15 minutes).
+#
+# GitHub throttles short scheduled workflows (a */10 cron often runs only a
+# few times a day), so each run is a long-lived job that pings every 9
+# minutes. Concurrency queues later triggers behind the running job, which
+# lets the window stay covered across GitHub's 6-hour job limit.
+#
+# This workflow is intentionally identical in addon-marvel and addon-dc:
+# either repository can keep both services warm if GitHub throttles the other.
+
+on:
+  schedule:
+    # Fallback triggers every two hours during the window. Even if GitHub
+    # delays or skips some, the concurrency queue keeps the window covered.
+    - cron: '0 10-20/2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: keep-addons-awake
+  cancel-in-progress: false
+
+jobs:
+  keep-warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Ping both addons until 21:45 UTC
+        run: |
+          end=$((SECONDS + 20700)) # stay under GitHub's 6-hour job limit
+          while [ $SECONDS -lt $end ]; do
+            now=$(date -u +%H%M)
+            # Five-minute grace period for an early scheduler start.
+            if [ "$now" -lt 955 ] || [ "$now" -ge 2145 ]; then
+              echo "Outside the 09:55-21:45 UTC keepalive window at $(date -u +%H:%M) UTC"
+              break
+            fi
+
+            curl -sf --max-time 90 https://addon-marvel-a6rd.onrender.com/health >/dev/null \
+              && echo "$(date -u +%H:%M) marvel ok" \
+              || echo "$(date -u +%H:%M) marvel ping failed"
+
+            curl -sf --max-time 90 https://addon-dc-ila1.onrender.com/health >/dev/null \
+              && echo "$(date -u +%H:%M) dc ok" \
+              || echo "$(date -u +%H:%M) dc ping failed"
+
+            sleep 540
+          done
