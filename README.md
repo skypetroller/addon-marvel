@@ -1,42 +1,45 @@
-# Marvel Addon for Stremio
+# Marvel Add-on for Stremio
 
-A self-hosted continuation of [joaogonp/addon-marvel](https://github.com/joaogonp/addon-marvel), rebuilt to run on Node/Render after the original Deno Deploy host went offline.
+A self-hosted fork of [joaogonp/addon-marvel](https://github.com/joaogonp/addon-marvel), rebuilt to run on Node/Render after the original Deno Deploy host went offline. It keeps itself up to date automatically: GitHub Actions discovers new Marvel releases, refreshes metadata, and commits the changes twice a week.
 
 **Live addon:** https://addon-marvel-a6rd.onrender.com
-
 **Configure page:** https://addon-marvel-a6rd.onrender.com/configure
-
 **Manifest:** https://addon-marvel-a6rd.onrender.com/manifest.json
-
 **Stremio install:** `stremio://addon-marvel-a6rd.onrender.com/manifest.json`
 
 ---
 
 ## Features
 
-- **12 catalogs** — MCU Chronologically Ordered, MCU Release Order, X-Men, Movies, Series, Animations, New Releases and Coming Soon, split into movie and series rows wherever a list contains both.
-- **Real metadata** — descriptions, posters, logos, genres, IMDb ratings and YouTube trailers for every cached title (TMDB + OMDb).
-- **Search, genre filters and paging** on every catalog.
-- **RatingPosterDB support** — optional RPDB key on the configure page.
-- **Configurable install links** — pick only the catalogs you want.
-- **Auto-updater** — GitHub Actions discovers new Marvel releases, refreshes metadata, guards against degraded data, and bumps the manifest version twice a week (Mondays + Thursdays).
-- **Health endpoint** — `/health` reports uptime, version and the last data refresh.
-- **Sensible cache policy** — catalog payloads cached for an hour; manifests and pages always revalidate.
+- **Automatic updates** — GitHub Actions discovers new Marvel releases, refreshes metadata, guards against degraded data, and bumps the manifest version twice a week (Mondays and Thursdays).
+- **Curated MCU orders** — chronological and release-order rows for movies and series, alongside the broader Marvel library.
+- **Coming Soon** — announced titles with a confirmed future release date.
+- **New Releases** — everything added to the library in the last 120 days, split into movie and series rows.
+- **Search, genre filters and paging** — every catalog ships a search box, a genre dropdown and infinite scrolling.
+- **Trailers** — YouTube trailer links are stored with the data and surfaced by Stremio.
+- **RPDB support (optional)** — show ratings on posters by adding your [RatingPosterDB](https://ratingposterdb.com) API key on the configure page.
+- **Data quality guard** — CI refuses to commit degraded data (counting drops, missing posters, overviews or ratings after a quota hiccup), and failures open a GitHub issue automatically.
+- **Freshness visible** — the configure page footer shows the last data refresh, `/health` reports it as JSON, and a shared keep-awake workflow keeps both Marvel and DC warm during a 12-hour daily window.
+- **Sensible cache policy** — catalog payloads are cached for one hour; manifests and pages always revalidate.
 
 ---
 
 ## Catalogs
 
-| ID | Name |
-| --- | --- |
-| `marvel-mcu-movies` / `marvel-mcu-series` | MCU Chronologically Ordered (Movies / Series) |
-| `release-order-movies` / `release-order-series` | MCU Release Order (Movies / Series) |
-| `xmen` | X-Men |
-| `movies` | Movies |
-| `series` | Series |
-| `animations-movies` / `animations-series` | Animations (Movies / Series) |
-| `marvel-new-movies` / `marvel-new-series` | New Releases (added in the last 120 days) |
-| `marvel-upcoming` | Coming Soon (confirmed future release dates) |
+| Catalog | ID | Contents |
+| --- | --- | --- |
+| Coming Soon | `marvel-upcoming` | Announced titles with a confirmed future release date |
+| New Releases (Movies) | `marvel-new-movies` | Marvel movies added in the last 120 days |
+| New Releases (Series) | `marvel-new-series` | Marvel series added in the last 120 days |
+| MCU Chronologically Ordered (Movies) | `marvel-mcu-movies` | MCU films in story order |
+| MCU Chronologically Ordered (Series) | `marvel-mcu-series` | MCU shows in story order |
+| MCU Release Order (Movies) | `release-order-movies` | MCU films by release date |
+| MCU Release Order (Series) | `release-order-series` | MCU shows by release date |
+| X-Men | `xmen` | X-Men and mutant titles |
+| Movies | `movies` | All live-action Marvel movies |
+| Series | `series` | All live-action Marvel series |
+| Animations (Movies) | `animations-movies` | Animated Marvel features |
+| Animations (Series) | `animations-series` | Animated Marvel series |
 
 Lists that contain both movies and series are exposed as `-movies` and `-series` catalog variants. Stremio only renders the standard `movie` and `series` types reliably, so this keeps every row visible on the Board, Discover and Android TV. Old custom install links that use a base ID (for example `marvel-mcu`) still work and expand to both variants.
 
@@ -44,71 +47,77 @@ The MCU chronological and release-order lists are curated. The updater adds new 
 
 ---
 
-## Install / self-host
+## Installation
 
-### Render (recommended)
+### Standard installation
 
-1. Open the Blueprint deploy link: **https://render.com/deploy?repo=https://github.com/skypetroller-addons/addon-marvel**
-2. Select the repo and create the web service (the live service is `addon-marvel-a6rd`).
-3. Add the environment variables:
-   - `TMDB_API_KEY` — TMDB API key (v3)
-   - `OMDB_API_KEY` — OMDb API key (free tier is fine)
-4. Deploy. The service starts with `npm start` and exposes `/health`.
+Use the addon URL directly:
+
+```
+https://addon-marvel-a6rd.onrender.com/manifest.json
+```
+
+This is the canonical install URL. Stremio pins each addon record to the exact URL it was installed from, so use this URL for new installs.
+
+### Custom catalog configuration
+
+1. Visit the configuration page: https://addon-marvel-a6rd.onrender.com/configure
+2. Select the catalogs you want (optionally add your RPDB key).
+3. Click **Install addon**.
+
+The install URL encodes your selection, e.g. `https://addon-marvel-a6rd.onrender.com/catalog/marvel-upcoming,movies/manifest.json`.
+
+---
+
+## Deploy your own
+
+1. **Fork** this repository.
+2. **Get API keys** (both free): [TMDb](https://www.themoviedb.org/settings/api) and [OMDb](https://www.omdbapi.com/apikey.aspx).
+3. **Add GitHub secrets** (Settings → Secrets and variables → Actions): `TMDB_API_KEY`, `OMDB_API_KEY`.
+4. **Deploy on Render** as a Web Service — build command `npm ci`, start command `npm start` — and set the same two environment variables (`PORT` is provided by Render).
+5. Optional: update the URLs inside `.github/workflows/keepalive.yml` and the badge links if you rename the service.
 
 ### Keep-awake window
 
 Render's free tier spins a service down after ~15 minutes without traffic and gives each workspace 750 instance-hours per month. Keeping both this addon and the DC addon awake 24/7 would need ~1,460 hours, so the shared `.github/workflows/keepalive.yml` keeps both warm during a roughly 12-hour daily window: **~10:00–21:45 UTC**. Pings run from 09:55 to 21:30, then Render's idle timer covers the remaining 15 minutes. Outside that window the first request can take 30–60 seconds to cold-start.
 
-The same workflow is intentionally present in both `addon-marvel` and `addon-dc`; either repository can keep both services warm if GitHub throttles the other. It uses long-lived jobs because GitHub throttles short `*/10` cron workflows.
-
-### Local development
-
-```bash
-npm install
-cp .env.example .env   # add your TMDB/OMDb keys
-npm start
-# http://localhost:7000/configure
-```
+The same workflow is intentionally present in both the Marvel and DC repositories; either repository can keep both services warm if GitHub throttles the other. It uses long-lived jobs because GitHub throttles short `*/10` cron workflows.
 
 ### Environment variables
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `TMDB_API_KEY` | yes | Metadata, posters, logos, trailers, release dates |
-| `OMDB_API_KEY` | recommended | Real IMDb ratings and fallback plots |
+| `TMDB_API_KEY` | yes | Metadata, posters, logos, trailers and release dates |
+| `OMDB_API_KEY` | recommended | IMDb ratings and fallback plots |
 | `PORT` | no | Defaults to `7000` |
 
 ---
 
-## API
+## Running locally
 
-| Endpoint | Description |
-| --- | --- |
-| `/manifest.json` | Default manifest (all catalogs) |
-| `/rpdb/<key>/manifest.json` | Manifest with RPDB posters |
-| `/catalog/<id1,id2>/manifest.json` | Manifest with selected catalogs |
-| `/catalog/<type>/<id>.json` | Catalog data |
-| `/catalog/<type>/<id>/search=<q>&genre=<g>&skip=<n>.json` | Search / genre / paging |
-| `/api/catalogs` | Catalog list with live counts |
-| `/health` | Status, uptime, version, last data refresh |
+```bash
+git clone https://github.com/skypetroller-addons/addon-marvel.git
+cd addon-marvel
+npm ci
+```
 
----
+Create a `.env` file:
 
-## Data updater
+```
+TMDB_API_KEY=your_tmdb_key
+OMDB_API_KEY=your_omdb_key
+PORT=7000
+```
 
-The workflow lives in `.github/workflows/update-data.yml` and runs Mondays and Thursdays at 06:17 UTC (or manually from the Actions tab).
+Start the server:
 
-It runs, in order:
+```bash
+npm start
+```
 
-1. `scripts/discoverNewReleases.js` — TMDB discover for Marvel production companies; adds genuinely new titles.
-2. `scripts/buildMetadata.js --refresh` — refreshes the on-disk metadata cache.
-3. `scripts/guardDataQuality.js` — refuses to commit if catalog counts or metadata coverage collapse.
-4. `scripts/writeLastUpdated.js` — stamps `Data/lastUpdated.json`.
-5. `scripts/bumpVersion.js` — bumps the manifest/package patch version when content changed.
+Then open `http://localhost:7000/configure`.
 
-Repository secrets required: `TMDB_API_KEY`, `OMDB_API_KEY`.
-
-To run the updater locally:
+To refresh the data manually:
 
 ```bash
 npm run discover
@@ -119,10 +128,42 @@ npm run stamp
 
 ---
 
-## Credits
+## How the automatic updates work
 
-Original project and catalog data: [joaogonp/addon-marvel](https://github.com/joaogonp/addon-marvel) (MIT). This fork preserves the upstream history and rewrites the runtime for Node/Render.
+`.github/workflows/update-data.yml` runs every **Monday and Thursday at 06:17 UTC** (and on demand from the Actions tab):
+
+1. Discovers new Marvel releases from TMDb and appends genuinely new titles.
+2. Refreshes the on-disk metadata cache (posters, overviews, ratings, release dates).
+3. Runs the data-quality guard.
+4. Stamps `Data/lastUpdated.json`.
+5. Commits the updated data and bumps the manifest version when content changed.
+6. Render redeploys automatically; catalogs are cached for one hour.
+
+The commit message lists the new titles. Successful runs close any open "Data updater failed" issue; failures open one.
+
+---
+
+## API routes
+
+| Route | Purpose |
+| --- | --- |
+| `/manifest.json` | Full addon manifest (all catalogs); canonical install URL |
+| `/catalog/<ids>/manifest.json` | Manifest limited to selected catalogs |
+| `/catalog/<type>/<id>.json` | Catalog data (also accepts `/search=x&genre=y&skip=100` extras) |
+| `/rpdb/<key>/manifest.json` | Manifest with RPDB posters |
+| `/configure` | Configuration page |
+| `/api/catalogs` | Catalog list with live item counts |
+| `/health` | Status, uptime, version and last data refresh |
+
+---
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+---
+
+## Acknowledgements
+
+- **joaogonp** — creator of the original Marvel addon this project descends from.
+- This fork adds the Node/Render runtime, automated updates, the data-quality guard, freshness reporting and the split movie/series catalog variants.
