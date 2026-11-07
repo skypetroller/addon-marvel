@@ -35,7 +35,7 @@ jobs:
         run: |
           end=$((SECONDS + 20700)) # stay under GitHub's 6-hour job limit
           while [ $SECONDS -lt $end ]; do
-            now=$(date -u +%H%M)
+            now=$((10#$(date -u +%H%M)))
             # Five-minute grace period for an early scheduler start.
             if [ "$now" -lt 955 ] || [ "$now" -ge 2145 ]; then
               echo "Outside the 09:55-21:45 UTC keepalive window at $(date -u +%H:%M) UTC"
