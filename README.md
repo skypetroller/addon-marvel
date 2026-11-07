@@ -48,7 +48,7 @@ The MCU chronological and release-order lists are curated. The updater adds new 
 
 ### Render (recommended)
 
-1. Open the Blueprint deploy link: **https://render.com/deploy?repo=https://github.com/skypetroller/addon-marvel**
+1. Open the Blueprint deploy link: **https://render.com/deploy?repo=https://github.com/skypetroller-addons/addon-marvel**
 2. Select the repo and create the web service (the live service is `addon-marvel-a6rd`).
 3. Add the environment variables:
    - `TMDB_API_KEY` — TMDB API key (v3)
