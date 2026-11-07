@@ -128,6 +128,22 @@ app.use((req, res, next) => {
 // curated mixed lists intact, but expose them under the standard types.
 const CATALOG_DEFS = [
   {
+    id: 'marvel-upcoming',
+    name: 'Coming Soon',
+    category: 'Timeline',
+    description: 'Announced Marvel titles with a confirmed future release date',
+    icon: 'clock',
+    type: 'movie',
+  },
+  {
+    id: 'marvel-new',
+    name: 'New Releases',
+    category: 'Timeline',
+    description: 'Marvel titles released or added in the last 120 days',
+    icon: 'star',
+    type: 'movie',
+  },
+  {
     id: 'marvel-mcu',
     name: 'MCU Chronologically Ordered',
     category: 'Timeline',
@@ -173,22 +189,6 @@ const CATALOG_DEFS = [
     category: 'Content Type',
     description: 'Marvel animated films and series',
     icon: 'palette',
-    type: 'movie',
-  },
-  {
-    id: 'marvel-new',
-    name: 'New Releases',
-    category: 'Timeline',
-    description: 'Marvel titles released or added in the last 120 days',
-    icon: 'star',
-    type: 'movie',
-  },
-  {
-    id: 'marvel-upcoming',
-    name: 'Coming Soon',
-    category: 'Timeline',
-    description: 'Announced Marvel titles with a confirmed future release date',
-    icon: 'clock',
     type: 'movie',
   },
 ];
