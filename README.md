@@ -55,7 +55,11 @@ The MCU chronological and release-order lists are curated. The updater adds new 
    - `OMDB_API_KEY` — OMDb API key (free tier is fine)
 4. Deploy. The service starts with `npm start` and exposes `/health`.
 
-Render's free tier spins a service down after ~15 minutes without traffic. The addon still works, but the first request after a nap can take 30–60 seconds. Keeping this service awake 24/7 would consume most of Render's 750 shared free instance-hours (the DC addon already uses that budget), so no keep-alive is configured by default.
+### Keep-awake window
+
+Render's free tier spins a service down after ~15 minutes without traffic and gives each workspace 750 instance-hours per month. Keeping both this addon and the DC addon awake 24/7 would need ~1,460 hours, so the shared `.github/workflows/keepalive.yml` keeps both warm during a 12-hour window: **10:00–22:00 UTC** (the last ping is at ~21:45; Render's idle timer covers the rest). Outside that window the first request can take 30–60 seconds to cold-start.
+
+The same workflow is intentionally present in both `addon-marvel` and `addon-dc`; either repository can keep both services warm if GitHub throttles the other. It uses long-lived jobs because GitHub throttles short `*/10` cron workflows.
 
 ### Local development
 
