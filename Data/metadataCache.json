@@ -2003,15 +2003,17 @@
     "name": "Armor Wars",
     "logo": null,
     "poster": "https://image.tmdb.org/t/p/w500/vDbzi8eM710THVCwjfqVU8a5E3g.jpg",
-    "description": "No description available.",
+    "description": "James Rhodes must confront one of Tony Stark's greatest fears when Stark's tech falls into the wrong hands.",
     "releaseInfo": "TBD",
+    "releaseDate": null,
     "imdbRating": "N/A",
     "genres": [
       "Action",
-      "Adventure"
+      "Science Fiction"
     ],
-    "tmdbId": null,
-    "updatedAt": "2026-08-09"
+    "tmdbId": 1827939,
+    "trailer": null,
+    "updatedAt": "2026-11-19"
   },
   "tt13623136": {
     "id": "tt13623136",
